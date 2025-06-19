@@ -2,6 +2,7 @@
 
 @section('content')
     <style>
+        /* [CSS sebelumnya tetap sama, tidak diubah] */
         .add-button {
             display: flex;
             justify-content: flex-end;
@@ -26,7 +27,6 @@
             fill: white;
         }
 
-        /* Css Modal Add */
         .custom-input {
             background-color: #FDFDFD;
             border: 1px solid #DAD9D9;
@@ -56,7 +56,6 @@
             padding: 8px 12px;
         }
 
-        /* Status dan tombol aksi */
         .status-selesai {
             color: #1CE04A;
             font-weight: bold;
@@ -104,7 +103,6 @@
             transform: scale(1.05);
         }
 
-        /* css judul halaman */
         .estetik-card {
             width: 100%;
             border-left: 7px solid #1E3B8A;
@@ -143,7 +141,71 @@
             margin-top: 10px;
             border-radius: 2px;
         }
+
+        /* .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                transition: opacity 0.5s ease-in-out;
+                opacity: 0;
+            }
+
+            .notification.visible {
+                opacity: 1;
+            } */
+
+        #notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #notification.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        #notification.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        #notification.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        #notificationTitle {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #notificationMessage {
+            font-size: 14px;
+        }
     </style>
+
+    <div id="notification" class="alert position-fixed top-0 end-0 m-4">
+        <div id="notificationTitle" style="font-weight: bold;"></div>
+        <div id="notificationMessage"></div>
+    </div>
 
     <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Prediksi Pengeringan Gabah</h4>
 
@@ -212,10 +274,6 @@
                 <div class="modal-body" style="padding: 0 27px 35px 27px;">
                     <form id="predictForm">
                         @csrf
-                        <div id="hasilPrediksi" class="mt-4" style="display: none;">
-                            <h5>Hasil Prediksi Durasi Pengeringan:</h5>
-                            <p id="durasiText" class="fw-bold fs-4 text-success"></p>
-                        </div>
                         <div id="errorMessage" class="mt-3 text-danger" style="display: none;"></div>
                         <div class="mb-3">
                             <label for="jenis_gabah" class="form-label">Jenis Gabah</label>
@@ -238,8 +296,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="suhu_gabah" class="form-label">Suhu Gabah (°C)</label>
-                            <input type="number" name="suhu_gabah" id="suhu_gabah" class="form-control" step="0.1" style="background-color: #eceff4;"
-                                readonly
+                            <input type="number" name="suhu_gabah" id="suhu_gabah" class="form-control" step="0.1"
+                                style="background-color: #eceff4;" readonly
                                 value="{{ $sensorData ? round(collect($sensorData)->avg('suhu_gabah'), 2) : '' }}" />
                         </div>
                         <div class="mb-3">
@@ -255,21 +313,55 @@
                                 value="{{ $sensorData ? round(collect($sensorData)->avg('kadar_air_gabah'), 2) : '' }}" />
                         </div>
                         <div style="margin-top: 30px;">
-                            <button type="submit" class="btn w-100" style="background-color: #1E3A8A; color: white;">Prediksi</button>
+                            <button type="submit" class="btn w-100"
+                                style="background-color: #1E3A8A; color: white;">Prediksi</button>
                         </div>
                     </form>
                     <script>
+                        // Global notification function
+                        function showNotification(title, message, className = 'success') {
+                            const notification = document.getElementById('notification');
+                            const notificationTitle = document.getElementById('notificationTitle');
+                            const notificationMessage = document.getElementById('notificationMessage');
+
+                            notificationTitle.innerText = title;
+                            notificationMessage.innerText = message;
+                            notification.className = `alert position-fixed top-0 end-0 m-4 ${className}`;
+
+                            notification.classList.add('visible');
+
+                            setTimeout(() => {
+                                notification.classList.remove('visible');
+                                setTimeout(() => {
+                                    notificationTitle.innerText = '';
+                                    notificationMessage.innerText = '';
+                                    notification.classList.remove(className);
+                                }, 500);
+                            }, 5000);
+                        }
+
                         // Retrieve Sanctum token from session
                         const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
+
+                        // Function to close modal and remove backdrop
+                        function closeModalAndShowNotification(title, message, className, callback = null) {
+                            const modal = $('#tambahDataModal');
+                            modal.modal('hide');
+                            modal.one('hidden.bs.modal', function() {
+                                $('.modal-backdrop').remove();
+                                $('body').removeClass('modal-open').css('padding-right', '');
+                                showNotification(title, message, className);
+                                if (callback) callback();
+                            });
+                        }
 
                         document.getElementById('predictForm').addEventListener('submit', function(e) {
                             e.preventDefault();
                             const errorMessageDiv = document.getElementById('errorMessage');
-                            const hasilPrediksiDiv = document.getElementById('hasilPrediksi');
+                            const form = e.target;
 
                             errorMessageDiv.style.display = 'none';
                             errorMessageDiv.innerText = '';
-                            hasilPrediksiDiv.style.display = 'none';
 
                             // Validasi data sensor
                             const suhuGabah = document.getElementById('suhu_gabah').value;
@@ -277,31 +369,33 @@
                             const kadarAirGabah = document.getElementById('kadar_air_gabah').value;
 
                             if (!suhuGabah || !suhuRuangan || !kadarAirGabah) {
-                                showError('Data sensor tidak lengkap. Pastikan semua data sensor tersedia.');
+                                closeModalAndShowNotification('Validasi Gagal',
+                                    'Data sensor tidak lengkap. Pastikan semua tersedia.', 'error');
                                 return;
                             }
 
                             // Validasi input form
-                            const form = e.target;
                             if (!form.jenis_gabah.value) {
-                                showError('Jenis gabah harus dipilih.');
+                                closeModalAndShowNotification('Validasi Gagal', 'Jenis gabah harus diisi.', 'error');
                                 return;
                             }
                             const beratGabah = parseFloat(form.berat_gabah.value);
                             if (!beratGabah || beratGabah <= 0) {
-                                showError('Berat gabah harus lebih besar dari 0.');
+                                closeModalAndShowNotification('Validasi Gagal', 'Berat gabah harus lebih dari 0.', 'error');
                                 return;
                             }
                             const kadarAirTarget = parseFloat(form.kadar_air_target.value);
                             if (!kadarAirTarget || kadarAirTarget < 0 || kadarAirTarget > 100) {
-                                showError('Target kadar air harus di antara 0 dan 100.');
+                                closeModalAndShowNotification('Validasi Gagal', 'Target kadar air harus antara 0-100%.', 'error');
                                 return;
                             }
 
                             // Periksa token Sanctum
                             if (!sanctumToken) {
-                                showError('Anda harus login untuk menyimpan data prediksi.');
-                                window.location.href = '{{ route('login') }}';
+                                closeModalAndShowNotification('Autentikasi Gagal', 'Silakan login untuk melanjutkan.', 'error',
+                                () => {
+                                        window.location.href = '{{ route('login') }}';
+                                    });
                                 return;
                             }
 
@@ -317,8 +411,9 @@
                                     kadar_air_target: kadarAirTarget
                                 };
 
-                                const timestampMulai = new Date().toISOString();
-                                fetch("http://192.168.0.9:5000/predict", {
+                                console.log('Data yang dikirim ke ML:', data);
+
+                                fetch("http://192.168.43.142:5000/predict", {
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json"
@@ -326,21 +421,14 @@
                                         body: JSON.stringify(data)
                                     })
                                     .then(response => {
+                                        console.log('Respons dari ML:', response);
                                         if (!response.ok) {
-                                            throw new Error(
-                                                `Gagal mendapatkan prediksi dari server ML: ${response.statusText}`);
+                                            throw new Error(`Gagal mendapatkan prediksi: ${response.statusText}`);
                                         }
                                         return response.json();
                                     })
                                     .then(data => {
-                                        document.getElementById('durasiText').innerText =
-                                            `${data.durasi_rekomendasi} menit`;
-                                        hasilPrediksiDiv.style.display = 'block';
-
                                         const durasiMenit = parseFloat(data.durasi_rekomendasi);
-                                        const timestampSelesai = new Date(new Date(timestampMulai).getTime() +
-                                            durasiMenit * 60 * 1000).toISOString();
-
                                         const storeData = {
                                             nama_jenis: form.jenis_gabah.value,
                                             suhu_gabah_awal: parseFloat(suhuGabah),
@@ -348,10 +436,7 @@
                                             kadar_air_awal: parseFloat(kadarAirGabah),
                                             kadar_air_target: kadarAirTarget,
                                             berat_gabah: beratGabah,
-                                            durasi_rekomendasi: durasiMenit,
-                                            timestamp_mulai: timestampMulai,
-                                            timestamp_selesai: timestampSelesai,
-                                            status: 'ongoing'
+                                            durasi_rekomendasi: durasiMenit
                                         };
 
                                         console.log('Data yang dikirim ke /prediksi/store:', storeData);
@@ -362,7 +447,7 @@
                                                     'Content-Type': 'application/json',
                                                     'Accept': 'application/json',
                                                     'Authorization': `Bearer ${sanctumToken}`,
-                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                    'X-CSRF-Token': '{{ csrf_token() }}'
                                                 },
                                                 body: JSON.stringify(storeData)
                                             })
@@ -370,127 +455,116 @@
                                                 console.log('Respons dari /prediksi/store:', response);
                                                 if (!response.ok) {
                                                     if (response.status === 401) {
-                                                        showError(
-                                                            'Sesi Anda telah berakhir. Silakan login kembali.');
-                                                        window.location.href = '{{ route('login') }}';
-                                                        return Promise.reject(new Error('Unauthorized'));
+                                                        throw new Error('Unauthorized');
                                                     }
                                                     return response.json().then(err => {
-                                                        throw new Error(err.error || err.message ||
-                                                            `Gagal menyimpan ke database Laravel (Status: ${response.status})`
-                                                        );
+                                                        throw new Error(err.error ||
+                                                            `Gagal menyimpan data (Status: ${response.status})`
+                                                            );
                                                     });
                                                 }
                                                 return response.json();
                                             })
                                             .then(data => {
-                                                if (data.success) {
-                                                    $('#tambahDataModal').modal('hide');
-                                                    form.reset();
-                                                    hasilPrediksiDiv.style.display = 'none';
-                                                    document.getElementById('durasiText').innerText = '';
-                                                    $('#data-table').DataTable().ajax.reload(null, false);
-                                                    alert("Data berhasil disimpan dan proses pengeringan dimulai!");
-                                                    startSensorMonitoring(data.data.process_id, sanctumToken);
-                                                } else {
-                                                    showError('Gagal menyimpan proses: ' + (data.error ||
-                                                        'Kesalahan server.'));
-                                                }
+                                                closeModalAndShowNotification(
+                                                    'Proses Dimulai',
+                                                    `Pengeringan dimulai dengan durasi ${durasiMenit} menit.`,
+                                                    'success',
+                                                    () => {
+                                                        form.reset();
+                                                        $('#data-table').DataTable().ajax.reload(null, false);
+                                                        startSensorMonitoring(data.data.process_id,
+                                                            sanctumToken);
+                                                    }
+                                                );
                                             })
                                             .catch(err => {
-                                                if (err.message !== 'Unauthorized') {
-                                                    console.error("Error:", err);
-                                                    showError(
-                                                        `Terjadi kesalahan saat menyimpan ke Laravel: ${err.message}`
-                                                    );
-                                                }
+                                                let title = 'Gagal Memulai Proses';
+                                                let message = err.message.includes(
+                                                        'Tidak dapat memulai proses pengeringan baru') ?
+                                                    'Ada proses pengeringan yang sedang berjalan.' :
+                                                    `Kesalahan: ${err.message}`;
+                                                closeModalAndShowNotification(title, message, 'error', () => {
+                                                    if (err.message === 'Unauthorized') {
+                                                        window.location.href = '{{ route('login') }}';
+                                                    }
+                                                });
                                             });
                                     })
                                     .catch(error => {
-                                        console.error("Gagal menghubungi server ML:", error);
-                                        showError(`Gagal menghubungi server ML: ${error.message}`);
+                                        closeModalAndShowNotification('Gagal Prediksi',
+                                            `Server ML error: ${error.message}`, 'error');
                                     });
                             }).catch(err => {
-                                console.error("Gagal menginisialisasi CSRF:", err);
-                                showError('Gagal menginisialisasi CSRF token. Silakan coba lagi.');
+                                closeModalAndShowNotification('Gagal Inisialisasi', 'Gagal menginisialisasi CSRF token.',
+                                    'error');
                             });
-
-                            function showError(msg) {
-                                errorMessageDiv.style.display = 'block';
-                                errorMessageDiv.innerText = msg;
-                            }
-
-                            function startSensorMonitoring(processId, token) {
-                                setInterval(function() {
-                                    fetch('{{ config('services.api.base_url') }}/get-sensor', {
-                                            headers: {
-                                                'Authorization': `Bearer ${token}`,
-                                                'Accept': 'application/json'
-                                            }
-                                        })
-                                        .then(response => {
-                                            if (!response.ok) {
-                                                throw new Error(`Gagal mengambil data sensor: ${response.statusText}`);
-                                            }
-                                            return response.json();
-                                        })
-                                        .then(sensorData => {
-                                            if (sensorData.data && sensorData.data.length > 0) {
-                                                const latestSensor = sensorData.data[0];
-                                                const currentKadarAir = parseFloat(latestSensor.kadar_air_gabah);
-
-                                                const table = $('#data-table').DataTable();
-                                                const row = table.rows().data().toArray().find(r => r.process_id ===
-                                                    processId);
-                                                if (!row || row.status !== 'ongoing') return;
-
-                                                const kadarAirTarget = parseFloat(row.kadar_air_target);
-                                                const startTime = new Date(row.timestamp_mulai);
-                                                const now = new Date();
-                                                const durasiTerlaksana = Math.floor((now - startTime) / (1000 * 60));
-
-                                                // Update durasi terlaksana
-                                                fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/update-duration`, {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                            'Authorization': `Bearer ${token}`,
-                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                                        },
-                                                        body: JSON.stringify({
-                                                            durasi_terlaksana: durasiTerlaksana,
-                                                            kadar_air_akhir: currentKadarAir,
-                                                            suhu_gabah_akhir: parseFloat(latestSensor
-                                                                .suhu_gabah),
-                                                            suhu_ruangan_akhir: parseFloat(latestSensor
-                                                                .suhu_ruangan)
-                                                        })
-                                                    })
-                                                    .then(response => {
-                                                        if (!response.ok) {
-                                                            throw new Error(
-                                                                `Gagal memperbarui durasi: ${response.statusText}`
-                                                            );
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then(data => {
-                                                        if (data.success) {
-                                                            table.ajax.reload(null, false);
-                                                            if (data.message.includes('selesai secara otomatis')) {
-                                                                alert(
-                                                                    `Proses ${processId} selesai! Kadar air target tercapai.`
-                                                                    );
-                                                            }
-                                                        }
-                                                    })
-                                                    .catch(err => console.error('Error updating duration:', err));
-                                            }
-                                        })
-                                        .catch(err => console.error('Error fetching sensor data:', err));
-                                }, 60000); // Cek setiap 60 detik
-                            }
                         });
+
+                        function startSensorMonitoring(processId, token) {
+                            setInterval(function() {
+                                fetch('{{ config('services.api.base_url') }}/get-sensor', {
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Accept': 'application/json'
+                                        }
+                                    })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            throw new Error(`Gagal mengambil data sensor: ${response.statusText}`);
+                                        }
+                                        return response.json();
+                                    })
+                                    .then(sensorData => {
+                                        if (sensorData.data && sensorData.data.length > 0) {
+                                            const latestSensor = sensorData.data[0];
+                                            const currentKadarAir = parseFloat(latestSensor.kadar_air_gabah);
+
+                                            const table = $('#data-table').DataTable();
+                                            const row = table.rows().data().toArray().find(r => r.process_id === processId);
+                                            if (!row || row.status !== 'ongoing') return;
+
+                                            const kadarAirTarget = parseFloat(row.kadar_air_target);
+                                            const startTime = new Date(row.timestamp_mulai);
+                                            const now = new Date();
+                                            const durasiTerlaksana = Math.floor((now - startTime) / (1000 * 60));
+
+                                            fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/update-duration`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Authorization': `Bearer ${token}`,
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                    },
+                                                    body: JSON.stringify({
+                                                        durasi_terlaksana: durasiTerlaksana,
+                                                        kadar_air_akhir: currentKadarAir,
+                                                        suhu_gabah_akhir: parseFloat(latestSensor.suhu_gabah),
+                                                        suhu_ruangan_akhir: parseFloat(latestSensor.suhu_ruangan)
+                                                    })
+                                                })
+                                                .then(response => {
+                                                    if (!response.ok) {
+                                                        throw new Error(`Gagal memperbarui durasi: ${response.statusText}`);
+                                                    }
+                                                    return response.json();
+                                                })
+                                                .then(data => {
+                                                    if (data.success) {
+                                                        table.ajax.reload(null, false);
+                                                        if (data.message.includes('selesai secara otomatis')) {
+                                                            showNotification('Proses Selesai',
+                                                                `Proses ${processId} selesai! Kadar air target tercapai.`,
+                                                                'success');
+                                                        }
+                                                    }
+                                                })
+                                                .catch(err => console.error('Error updating duration:', err));
+                                        }
+                                    })
+                                    .catch(err => console.error('Error fetching sensor data:', err));
+                            }, 60000);
+                        }
                     </script>
                 </div>
             </div>
@@ -507,311 +581,385 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-    <!-- Bootstrap JS (untuk modal) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-(function($) {
-    $(document).ready(function() {
-        // Retrieve Sanctum token from session
-        const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
-        console.log('Sanctum Token:', sanctumToken ? 'Present' : 'Missing');
+        (function($) {
+            $(document).ready(function() {
+                // Global notification function
+                function showNotification(message, className = 'bg-green-500') {
+                    const container = document.getElementById('notification-container');
+                    const notification = document.createElement('div');
+                    notification.className = `notification ${className}`;
+                    notification.innerText = message;
+                    container.appendChild(notification);
 
-        // Initialize DataTable
-        const table = $('#data-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ config('services.api.base_url') }}/drying-process',
-                type: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${sanctumToken}`,
-                    'Accept': 'application/json'
-                },
-                dataSrc: function(json) {
-                    console.log('AJAX Response from /drying-process:', json);
-                    if (json.error) {
-                        console.error('API Error:', json.error);
-                        alert('Gagal memuat data: ' + json.error);
-                        return [];
-                    }
-                    if (!json.data) {
-                        console.warn('No data property in response:', json);
-                        return [];
-                    }
-                    return json.data;
-                },
-                error: function(xhr, error, thrown) {
-                    console.error('AJAX Error:', {
-                        status: xhr.status,
-                        response: xhr.responseJSON,
-                        error: thrown
-                    });
-                    let errorMessage = 'Terjadi kesalahan saat memuat data.';
-                    if (xhr.status === 401) {
-                        errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
-                        window.location.href = '{{ route('login') }}';
-                    } else if (xhr.status === 500) {
-                        errorMessage = 'Kesalahan server. Silakan coba lagi atau hubungi administrator.';
-                    } else if (xhr.status === 0) {
-                        errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi jaringan Anda.';
-                    } else {
-                        errorMessage = xhr.responseJSON?.error || 'Kesalahan tidak diketahui.';
-                    }
-                    alert(errorMessage);
-                    table.processing(false);
+                    setTimeout(() => {
+                        notification.classList.add('visible');
+                    }, 100);
+
+                    setTimeout(() => {
+                        notification.classList.remove('visible');
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 500);
+                    }, 5000);
                 }
-            },
-            columns: [
-                {
-                    data: null,
-                    render: function(data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
-                    }
-                },
-                { data: 'nama_jenis' },
-                {
-                    data: 'berat_gabah',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'suhu_gabah_awal',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'suhu_ruangan_awal',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'kadar_air_awal',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'kadar_air_target',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'suhu_gabah_akhir',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'suhu_ruangan_akhir',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                {
-                    data: 'kadar_air_akhir',
-                    render: function(data) {
-                        if (data === null || data === undefined) return '-';
-                        const value = parseFloat(data);
-                        return isNaN(value) ? '-' : value.toFixed(2);
-                    }
-                },
-                { data: 'durasi_rekomendasi' },
-                {
-                    data: 'durasi_aktual',
-                    render: function(data) {
-                        return data || '-';
-                    }
-                },
-                {
-                    data: 'durasi_terlaksana',
-                    render: function(data, type, row) {
-                        console.log('Durasi terlaksana data:', {
-                            data,
-                            status: row.status,
-                            timestamp_mulai: row.timestamp_mulai
-                        });
-                        return data || '0 jam 0 menit 0 detik';
-                    }
-                },
-                { data: 'timestamp_mulai' },
-                { data: 'timestamp_selesai' },
-                { data: 'status' },
-                {
-                    data: null,
-                    render: function(data, type, row) {
-                        let buttons = '';
-                        if (row.status.includes('Menunggu')) {
-                            buttons += `<button class="btn btn-sm btn-success btn-mulai" onclick="startProcess(${row.process_id})">Mulai</button>`;
+
+                // Retrieve Sanctum token from session
+                const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
+                console.log('Sanctum Token:', sanctumToken ? 'Present' : 'Missing');
+
+                // Initialize DataTable
+                const table = $('#data-table').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: '{{ config('services.api.base_url') }}/drying-process',
+                        type: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${sanctumToken}`,
+                            'Accept': 'application/json'
+                        },
+                        dataSrc: function(json) {
+                            console.log('AJAX Response from /drying-process:', json);
+                            if (json.error) {
+                                console.error('API Error:', json.error);
+                                showNotification('Gagal memuat data: ' + json.error, 'bg-red-600');
+                                return [];
+                            }
+                            if (!json.data || !Array.isArray(json.data)) {
+                                console.warn('Invalid data format:', json);
+                                showNotification('Data tidak valid atau kosong.', 'bg-red-600');
+                                return [];
+                            }
+                            return json.data;
+                        },
+                        error: function(xhr, error, thrown) {
+                            console.error('AJAX Error:', {
+                                status: xhr.status,
+                                response: xhr.responseJSON,
+                                error: thrown
+                            });
+                            let errorMessage = 'Terjadi kesalahan saat memuat data.';
+                            if (xhr.status === 401) {
+                                errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.';
+                                window.location.href = '{{ route('login') }}';
+                            } else if (xhr.status === 500) {
+                                errorMessage =
+                                    'Kesalahan server. Silakan coba lagi atau hubungi administrator.';
+                            } else if (xhr.status === 0) {
+                                errorMessage =
+                                    'Tidak dapat terhubung ke server. Periksa koneksi jaringan Anda.';
+                            } else {
+                                errorMessage = xhr.responseJSON?.error ||
+                                    'Kesalahan tidak diketahui.';
+                            }
+                            showNotification(errorMessage, 'bg-red-600');
+                            table.processing(false);
                         }
-                        if (row.status.includes('Berjalan')) {
-                            buttons += `<button class="btn btn-sm btn-danger btn-selesai" onclick="completeProcess(${row.process_id})">Selesai</button>`;
-                        }
-                        return buttons;
-                    }
-                }
-            ],
-            order: [[13, 'desc']]
-        });
-
-        window.startProcess = function(processId) {
-            console.log('Starting process:', processId);
-            fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/start`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sanctumToken}`,
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => {
-                console.log('Start process response:', response);
-                if (!response.ok) {
-                    throw new Error(`Gagal memulai proses: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    table.ajax.reload(null, false);
-                    alert('Proses dimulai!');
-                } else {
-                    alert('Gagal memulai proses: ' + (data.error || 'Kesalahan server.'));
-                }
-            })
-            .catch(err => {
-                console.error('Start process error:', err);
-                alert('Terjadi kesalahan saat memulai: ' + err.message);
-            });
-        };
-
-        window.completeProcess = function(processId) {
-            console.log('Completing proses:', processId);
-            fetch(`{{ config('services.api.base_url') }}/get-sensor?process_id=${processId}`, {
-                headers: {
-                    'Authorization': `Bearer ${sanctumToken}`,
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                console.log('Sensor response:', response);
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        alert('Sesi Anda telah berakhir. Silakan login.');
-                        window.location.href = '{{ route('prediksi.index') }}';
-                        return;
-                    }
-                    throw new Error(`Gagal mengambil data sensor: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(sensorData => {
-                console.log('Sensor data:', sensorData);
-                let completeData;
-
-                if (sensorData.success && sensorData.data && sensorData.data.length > 0) {
-                    const latestSensor = sensorData.data[0];
-                    const kadarAirAkhir = parseFloat(latestSensor.kadar_air_gabah);
-                    const suhuGabahAkhir = parseFloat(latestSensor.suhu_gabah);
-                    const suhuRuanganAkhir = parseFloat(latestSensor.suhu_ruangan);
-
-                    if (isNaN(kadarAirAkhir) || isNaN(suhuGabahAkhir) || isNaN(suhuRuanganAkhir)) {
-                        throw new Error('Data sensor tidak valid: Nilai kadar air, suhu gabah, atau suhu ruangan tidak valid.');
-                    }
-
-                    completeData = {
-                        kadar_air_akhir: kadarAirAkhir,
-                        suhu_gabah_akhir: suhuGabahAkhir,
-                        suhu_ruangan_akhir: suhuRuanganAkhir,
-                        timestamp_selesai: new Date().toISOString()
-                    };
-                } else {
-                    // Fallback ke input manual
-                    const kadarAirAkhir = prompt('Data sensor tidak tersedia. Masukkan kadar air akhir (%):');
-                    const suhuGabahAkhir = prompt('Masukkan suhu gabah akhir (°C):');
-                    const suhuRuanganAkhir = prompt('Masukkan suhu ruangan akhir (°C):');
-
-                    if (!kadarAirAkhir || !suhuGabahAkhir || !suhuRuanganAkhir) {
-                        alert('Semua data akhir harus diisi untuk menyelesaikan proses.');
-                        return;
-                    }
-
-                    const kadarAir = parseFloat(kadarAirAkhir);
-                    const suhuGabah = parseFloat(suhuGabahAkhir);
-                    const suhuRuangan = parseFloat(suhuRuanganAkhir);
-
-                    if (isNaN(kadarAir) || kadarAir < 0 || kadarAir > 100 ||
-                        isNaN(suhuGabah) || suhuGabah < 0 ||
-                        isNaN(suhuRuangan) || suhuRuangan < 0) {
-                        alert('Input tidak valid. Pastikan kadar air (0-100%), suhu gabah, dan suhu ruangan adalah angka positif.');
-                        return;
-                    }
-
-                    completeData = {
-                        kadar_air_akhir: kadarAir,
-                        suhu_gabah_akhir: suhuGabah,
-                        suhu_ruangan_akhir: suhuRuangan,
-                        timestamp_selesai: new Date().toISOString()
-                    };
-                }
-
-                console.log('Sending complete data:', completeData);
-
-                fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify(completeData)
-                })
-                .then(response => {
-                    console.log('Complete process response:', response);
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.error || `Gagal menyelesaikan proses: ${response.statusText}`);
-                        });
+                    columns: [{
+                            data: null,
+                            render: function(data, type, row, meta) {
+                                return meta.row + meta.settings._iDisplayStart + 1;
+                            }
+                        },
+                        {
+                            data: 'nama_jenis',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'berat_gabah',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'suhu_gabah_awal',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'suhu_ruangan_awal',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'kadar_air_awal',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'kadar_air_target',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'suhu_gabah_akhir',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'suhu_ruangan_akhir',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'kadar_air_akhir',
+                            render: function(data) {
+                                if (data === null || data === undefined) return '-';
+                                const value = parseFloat(data);
+                                return isNaN(value) ? '-' : value.toFixed(2);
+                            }
+                        },
+                        {
+                            data: 'durasi_rekomendasi',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'durasi_aktual',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'durasi_terlaksana',
+                            render: function(data, type, row) {
+                                console.log('Durasi terlaksana data:', {
+                                    data,
+                                    status: row.status,
+                                    timestamp_mulai: row.timestamp_mulai
+                                });
+                                return data || '0 jam 0 menit 0 detik';
+                            }
+                        },
+                        {
+                            data: 'timestamp_mulai',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'timestamp_selesai',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'status',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: null,
+                            render: function(data, type, row) {
+                                let buttons = '-';
+                                if (row.status && row.status.includes('Menunggu')) {
+                                    buttons =
+                                        `<button class="btn btn-sm btn-success btn-mulai" onclick="startProcess(${row.process_id})">Mulai</button>`;
+                                } else if (row.status && row.status.includes('Berjalan')) {
+                                    buttons =
+                                        `<button class="btn btn-sm btn-danger btn-selesai" onclick="completeProcess(${row.process_id})">Selesai</button>`;
+                                }
+                                return buttons;
+                            }
+                        }
+                    ],
+                    order: [
+                        [13, 'desc']
+                    ],
+                    language: {
+                        processing: 'Memuat data...',
+                        emptyTable: 'Tidak ada data tersedia',
+                        info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ entri',
+                        infoEmpty: 'Menampilkan 0 sampai 0 dari 0 entri',
+                        lengthMenu: 'Tampilkan _MENU_ entri',
+                        search: 'Cari:',
+                        paginate: {
+                            first: 'Pertama',
+                            last: 'Terakhir',
+                            next: 'Selanjutnya',
+                            previous: 'Sebelumnya'
+                        }
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        table.ajax.reload(null, false);
-                        alert('Proses selesai!');
-                    } else {
-                        alert('Gagal menyelesaikan proses: ' + (data.error || 'Kesalahan server.'));
-                    }
-                })
-                .catch(err => {
-                    console.error('Complete process error:', err);
-                    alert('Terjadi kesalahan saat menyelesaikan proses: ' + err.message);
                 });
-            })
-            .catch(err => {
-                console.error('Error fetching sensor data:', err);
-                alert('Gagal mengambil data sensor: ' + err.message);
+
+                window.startProcess = function(processId) {
+                    console.log('Starting process:', processId);
+                    fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/start`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${sanctumToken}`,
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(response => {
+                            console.log('Start process response:', response);
+                            if (!response.ok) {
+                                return response.json().then(err => {
+                                    throw new Error(err.error ||
+                                        `Gagal memulai proses: ${response.statusText}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                table.ajax.reload(null, false);
+                                showNotification('Proses dimulai!', 'bg-green-500');
+                            } else {
+                                showNotification('Gagal memulai proses: ' + (data.error ||
+                                    'Kesalahan server.'), 'bg-red-600');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Start process error:', err);
+                            showNotification('Terjadi kesalahan saat memulai: ' + err.message,
+                                'bg-red-600');
+                        });
+                };
+
+                window.completeProcess = function(processId) {
+                    console.log('Completing proses:', processId);
+                    fetch(`{{ config('services.api.base_url') }}/get-sensor?process_id=${processId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${sanctumToken}`,
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            console.log('Sensor response:', response);
+                            if (!response.ok) {
+                                if (response.status === 401) {
+                                    showNotification('Sesi Anda telah berakhir. Silakan login.',
+                                        'bg-red-600');
+                                    window.location.href = '{{ route('prediksi.index') }}';
+                                    return;
+                                }
+                                throw new Error(`Gagal mengambil data sensor: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(sensorData => {
+                            console.log('Sensor data:', sensorData);
+                            let completeData;
+
+                            if (sensorData.success && sensorData.data && sensorData.data.length > 0) {
+                                const latestSensor = sensorData.data[0];
+                                const kadarAirAkhir = parseFloat(latestSensor.kadar_air_gabah);
+                                const suhuGabahAkhir = parseFloat(latestSensor.suhu_gabah);
+                                const suhuRuanganAkhir = parseFloat(latestSensor.suhu_ruangan);
+
+                                if (isNaN(kadarAirAkhir) || isNaN(suhuGabahAkhir) || isNaN(
+                                        suhuRuanganAkhir)) {
+                                    throw new Error(
+                                        'Data sensor tidak valid: Nilai kadar air, suhu gabah, atau suhu ruangan tidak valid.'
+                                        );
+                                }
+
+                                completeData = {
+                                    kadar_air_akhir: kadarAirAkhir,
+                                    suhu_gabah_akhir: suhuGabahAkhir,
+                                    suhu_ruangan_akhir: suhuRuanganAkhir,
+                                    timestamp_selesai: new Date().toISOString()
+                                };
+                            } else {
+                                const kadarAirAkhir = prompt(
+                                    'Data sensor tidak tersedia. Masukkan kadar air akhir (%):');
+                                const suhuGabahAkhir = prompt('Masukkan suhu gabah akhir (°C):');
+                                const suhuRuanganAkhir = prompt('Masukkan suhu ruangan akhir (°C):');
+
+                                if (!kadarAirAkhir || !suhuGabahAkhir || !suhuRuanganAkhir) {
+                                    showNotification(
+                                        'Semua data akhir harus diisi untuk menyelesaikan proses.',
+                                        'bg-red-600');
+                                    return;
+                                }
+
+                                const kadarAir = parseFloat(kadarAirAkhir);
+                                const suhuGabah = parseFloat(suhuGabahAkhir);
+                                const suhuRuangan = parseFloat(suhuRuanganAkhir);
+
+                                if (isNaN(kadarAir) || kadarAir < 0 || kadarAir > 100 ||
+                                    isNaN(suhuGabah) || suhuGabah < 0 ||
+                                    isNaN(suhuRuangan) || suhuRuangan < 0) {
+                                    showNotification(
+                                        'Input tidak valid. Pastikan kadar air (0-100%), suhu gabah, dan suhu ruangan adalah angka positif.',
+                                        'bg-red-600');
+                                    return;
+                                }
+
+                                completeData = {
+                                    kadar_air_akhir: kadarAir,
+                                    suhu_gabah_akhir: suhuGabah,
+                                    suhu_ruangan_akhir: suhuRuangan,
+                                    timestamp_selesai: new Date().toISOString()
+                                };
+                            }
+
+                            console.log('Sending complete data:', completeData);
+
+                            fetch(`{{ config('services.api.base_url') }}/drying-process/${processId}/complete`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${sanctumToken}`,
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify(completeData)
+                                })
+                                .then(response => {
+                                    console.log('Complete process response:', response);
+                                    if (!response.ok) {
+                                        return response.json().then(err => {
+                                            throw new Error(err.error ||
+                                                `Gagal menyelesaikan proses: ${response.statusText}`
+                                                );
+                                        });
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        table.ajax.reload(null, false);
+                                        showNotification('Proses selesai!', 'bg-green-500');
+                                    } else {
+                                        showNotification('Gagal menyelesaikan proses: ' + (data
+                                            .error || 'Kesalahan server.'), 'bg-red-600');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Complete process error:', err);
+                                    showNotification(
+                                        'Terjadi kesalahan saat menyelesaikan proses: ' + err
+                                        .message, 'bg-red-600');
+                                });
+                        })
+                        .catch(err => {
+                            console.error('Error fetching sensor data:', err);
+                            showNotification('Gagal mengambil data sensor: ' + err.message,
+                                'bg-red-600');
+                        });
+                };
             });
-        };
-    });
-})(jQuery.noConflict(true));
-</script>
+        })(jQuery.noConflict(true));
+    </script>
 @endsection

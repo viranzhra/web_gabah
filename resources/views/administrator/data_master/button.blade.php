@@ -27,7 +27,10 @@
 </style>
 
 <div class="btn-group" role="group" aria-label="Data Master buttons">
-    <a href="{{ url('/jenis_gabah') }}" class="btn btn-link {{ request()->is('jenis_gabah') ? 'active' : '' }}" title="Lihat dan kelola jenis gabah">Jenis Gabah</a>
-    <a href="{{ url('/data_device') }}" class="btn btn-link {{ request()->is('data_device') ? 'active' : '' }}" title="Lihat data sensor">Data Tombak</a>
-    <a href="{{ url('/roles') }}" class="btn btn-link {{ request()->is('roles') ? 'active' : '' }}" title="Kelola pengaturan role pengguna">Role Management</a>
+    <a href="{{ url('/jenis_gabah') }}" class="btn btn-link {{ request()->is('jenis_gabah') ? 'active' : '' }}"
+        title="Lihat dan kelola jenis gabah">Jenis Gabah</a>
+    <a href="{{ url('/data_device') }}" class="btn btn-link {{ request()->is('data_device') ? 'active' : '' }}"
+        title="Lihat data sensor">Alat Sensor</a>
+    <a href="{{ url('/roles') }}" class="btn btn-link {{ request()->is('roles') ? 'active' : '' }}"
+        title="Kelola pengaturan role pengguna">Role Management</a>
 </div>

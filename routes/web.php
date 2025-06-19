@@ -34,7 +34,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
         })->name('admin.dashboard');
 
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
-        Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+        Route::post('/roles/store', [RoleController::class, 'store'])->name('roles.store');
         Route::get('/roles/{id}/edit', [RoleController::class, 'edit']);
         Route::put('/roles/{id}', [RoleController::class, 'update']);
         Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
