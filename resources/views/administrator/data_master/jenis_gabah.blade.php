@@ -113,7 +113,7 @@
         }
     </style>
 
-    <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Master</h4>
+    {{-- <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Master</h4> --}}
 
     @include('administrator.data_master.button')
 

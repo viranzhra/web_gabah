@@ -29,11 +29,9 @@
         /* css judul halaman */
         .estetik-card {
             width: 100%;
-            /* background: linear-gradient(135deg, #1441ac1f, #f9fafe); */
             border-left: 7px solid #1E3B8A;
             border-radius: 16px;
             box-shadow: 0 4px 18px rgba(30, 59, 138, 0.07);
-            /* animation: float 3s ease-in-out infinite; <-- dihapus */
             transition: all 0.3s ease;
             overflow: hidden;
         }
@@ -113,7 +111,6 @@
         #process_id.select2-hidden-accessible + .select2-container {
             margin-left: 20px;
         }
-
     </style>
 
     <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Sensor</h4>
@@ -123,180 +120,180 @@
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-        <div class="btn-group mt-3" role="group" aria-label="Data Sensor Device Buttons">
-    @if ($deviceNames->isEmpty())
-        <div class="alert alert-warning">Tidak ada device yang ditemukan.</div>
-    @else
-        <select name="device_id" id="device_id" class="form-select select2" style="width: 200px;">
-            <option value="">-- Pilih Device --</option>
-            @foreach ($deviceNames as $id => $name)
-                <option value="{{ $id }}">{{ $name }}</option>
-            @endforeach
-        </select>
-        <select name="process_id" id="process_id" class="form-select select2" style="width: 250px; margin-left: 10px;">
-            <option value="">-- Pilih Proses Pengeringan --</option>
-            <!-- Diisi via AJAX -->
-        </select>
-    @endif
-</div>
-<br>
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="table-responsive" style="overflow-x: auto;">
-            <table class="table table-striped table-bordered" id="data-table">
-                <thead class="text-center">
-                    <tr>
-                        <th class="text-center">No</th>
-                        <th class="text-center process-id-column">Proses Pengeringan</th>
-                        <th class="text-center device-name-column">Nama Device</th>
-                        <th class="text-center">Waktu Pencatatan</th>
-                        <th class="text-center">Kadar Air Gabah</th>
-                        <th class="text-center">Suhu Gabah</th>
-                        <th class="text-center">Suhu Ruangan</th>
-                    </tr>
-                </thead>
-            </table>
+    <div class="btn-group mt-3" role="group" aria-label="Data Sensor Device Buttons">
+        @if ($deviceNames->isEmpty())
+            <div class="alert alert-warning">Tidak ada device yang ditemukan.</div>
+        @else
+            <select name="device_id" id="device_id" class="form-select select2" style="width: 200px;">
+                <option value="">-- Pilih Device --</option>
+                @foreach ($deviceNames as $id => $name)
+                    <option value="{{ $id }}">{{ $name }}</option>
+                @endforeach
+            </select>
+            <select name="process_id" id="process_id" class="form-select select2" style="width: 250px; margin-left: 10px;">
+                <option value="">-- Pilih Proses Pengeringan --</option>
+                <!-- Diisi via AJAX -->
+            </select>
+        @endif
+    </div>
+    <br>
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="table-responsive" style="overflow-x: auto;">
+                <table class="table table-striped table-bordered" id="data-table">
+                    <thead class="text-center">
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th class="text-center process-id-column">Proses Pengeringan</th>
+                            <th class="text-center device-name-column">Nama Device</th>
+                            <th class="text-center">Waktu Pencatatan</th>
+                            <th class="text-center">Kadar Air Gabah</th>
+                            <th class="text-center">Suhu Gabah</th>
+                            <th class="text-center">Suhu Ruangan</th>
+                            <th class="text-center">Suhu Pembakaran</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-<script>
-(function($) {
-    $(document).ready(function() {
-        const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/\n|\r/g, '').trim();
+    <script>
+    (function($) {
+        $(document).ready(function() {
+            const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/\n|\r/g, '').trim();
 
-        $('#device_id').select2({
-            placeholder: "-- Pilih Device --",
-            allowClear: true,
-            width: 'resolve',
-            minimumResultsForSearch: 1
-        });
+            $('#device_id').select2({
+                placeholder: "-- Pilih Device --",
+                allowClear: true,
+                width: 'resolve',
+                minimumResultsForSearch: 1
+            });
 
-        $('#process_id').select2({
-            placeholder: "-- Pilih Proses Pengeringan --",
-            allowClear: true,
-            width: 'resolve',
-            minimumResultsForSearch: 1
-        });
+            $('#process_id').select2({
+                placeholder: "-- Pilih Proses Pengeringan --",
+                allowClear: true,
+                width: 'resolve',
+                minimumResultsForSearch: 1
+            });
 
-        // Load proses pengeringan
-        $.ajax({
-            url: '{{ config('services.api.base_url') }}/get_sensor/realtime',
-            type: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sanctumToken}`,
-                'Accept': 'application/json'
-            },
-            success: function(json) {
-                if (json.all_processes && json.all_processes.length > 0) {
-                    json.all_processes.forEach(function(process) {
+            // Load proses pengeringan
+            $.ajax({
+                url: '{{ config('services.api.base_url') }}/get_sensor/realtime',
+                type: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${sanctumToken}`,
+                    'Accept': 'application/json'
+                },
+                success: function(json) {
+                    if (json.all_processes && json.all_processes.length > 0) {
+                        json.all_processes.forEach(function(process) {
+                            $('#process_id').append(
+                                `<option value="${process.process_id}">Proses ${process.process_id} (${process.status})</option>`
+                            );
+                        });
+                    } else {
                         $('#process_id').append(
-                            `<option value="${process.process_id}">Proses ${process.process_id} (${process.status})</option>`
+                            `<option value="" disabled>Tidak ada proses tersedia</option>`
                         );
-                    });
-                } else {
-                    $('#process_id').append(
-                        `<option value="" disabled>Tidak ada proses tersedia</option>`
-                    );
-                }
-            },
-            error: function(xhr) {
-                $('#process_id').append(
-                    `<option value="" disabled>Gagal memuat proses</option>`
-                );
-            }
-        });
-
-        let table;
-
-        function loadData(deviceId, processId) {
-            if (table) table.destroy();
-
-            const showDeviceColumn = !deviceId;
-            const showProcessColumn = !processId;
-
-            table = $('#data-table').DataTable({
-                ajax: {
-                    url: '{{ config('services.api.base_url') }}/get_sensor/realtime',
-                    data: function(d) {
-                        if (deviceId) d.device_id = deviceId;
-                        if (processId) d.process_id = processId;
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'Accept': 'application/json'
-                    },
-                    dataSrc: function(json) {
-                        $('.alert-info, .alert-warning, .alert-danger').remove();
-
-                        if (json.error) {
-                            $('#data-table').before(`<div class="alert alert-danger">${json.error}</div>`);
-                            return [];
-                        }
-
-                        if (json.message) {
-                            $('#data-table').before(`<div class="alert alert-info">${json.message}</div>`);
-                        }
-
-                        return json.data || [];
                     }
                 },
-                columns: [
-                    {
-                        data: null,
-                        className: 'text-center',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
-                    {
-                        data: 'process_id',
-                        className: 'text-center process-id-column',
-                        visible: showProcessColumn,
-                        render: function(data) {
-                            return data ? `Proses ${data}` : '-';
-                        }
-                    },
-                    {
-                        data: 'device_name',
-                        className: 'text-center device-name-column',
-                        visible: showDeviceColumn,
-                        defaultContent: '-'
-                    },
-                    { data: 'timestamp', className: 'text-center' },
-                    { data: 'kadar_air_gabah', className: 'text-center' },
-                    { data: 'suhu_gabah', className: 'text-center' },
-                    { data: 'suhu_ruangan', className: 'text-center' }
-                ],
-                order: [[3, 'desc']],
-                drawCallback: function() {
-                    $('.device-name-column').toggle(showDeviceColumn);
-                    $('.process-id-column').toggle(showProcessColumn);
+                error: function(xhr) {
+                    $('#process_id').append(
+                        `<option value="" disabled>Gagal memuat proses</option>`
+                    );
                 }
             });
-        }
 
-        // Load awal
-        loadData('', '');
+            let table;
 
-        // Filter Select2
-        $('#device_id, #process_id').on('select2:select select2:clear', function() {
-            loadData($('#device_id').val(), $('#process_id').val());
+            function loadData(deviceId, processId) {
+                if (table) table.destroy();
+
+                const showDeviceColumn = !deviceId;
+                const showProcessColumn = !processId;
+
+                table = $('#data-table').DataTable({
+                    ajax: {
+                        url: '{{ config('services.api.base_url') }}/get_sensor/realtime',
+                        data: function(d) {
+                            if (deviceId) d.device_id = deviceId;
+                            if (processId) d.process_id = processId;
+                        },
+                        headers: {
+                            'Authorization': `Bearer ${sanctumToken}`,
+                            'Accept': 'application/json'
+                        },
+                        dataSrc: function(json) {
+                            $('.alert-info, .alert-warning, .alert-danger').remove();
+
+                            if (json.error) {
+                                $('#data-table').before(`<div class="alert alert-danger">${json.error}</div>`);
+                                return [];
+                            }
+
+                            if (json.message) {
+                                $('#data-table').before(`<div class="alert alert-info">${json.message}</div>`);
+                            }
+
+                            return json.data || [];
+                        }
+                    },
+                    columns: [
+                        {
+                            data: null,
+                            className: 'text-center',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row, meta) {
+                                return meta.row + 1;
+                            }
+                        },
+                        {
+                            data: 'process_id',
+                            className: 'text-center process-id-column',
+                            visible: showProcessColumn,
+                            render: function(data) {
+                                return data ? `Proses ${data}` : '-';
+                            }
+                        },
+                        {
+                            data: 'device_name',
+                            className: 'text-center device-name-column',
+                            visible: showDeviceColumn,
+                            defaultContent: '-'
+                        },
+                        { data: 'timestamp', className: 'text-center' },
+                        { data: 'kadar_air_gabah', className: 'text-center' },
+                        { data: 'suhu_gabah', className: 'text-center' },
+                        { data: 'suhu_ruangan', className: 'text-center' },
+                        { data: 'suhu_pembakaran', className: 'text-center', defaultContent: '-' }
+                    ],
+                    order: [[3, 'desc Ascending order']],
+                    drawCallback: function() {
+                        $('.device-name-column').toggle(showDeviceColumn);
+                        $('.process-id-column').toggle(showProcessColumn);
+                    }
+                });
+            }
+
+            // Load awal
+            loadData('', '');
+
+            // Filter Select2
+            $('#device_id, #process_id').on('select2:select select2:clear', function() {
+                loadData($('#device_id').val(), $('#process_id').val());
+            });
         });
-    });
-})(jQuery.noConflict(true));
-</script>
-
-
+    })(jQuery.noConflict(true));
+    </script>
 @endsection

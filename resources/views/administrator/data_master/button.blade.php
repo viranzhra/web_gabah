@@ -26,11 +26,13 @@
     }
 </style>
 
+<h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Master</h4>
+
 <div class="btn-group" role="group" aria-label="Data Master buttons">
     <a href="{{ url('/jenis_gabah') }}" class="btn btn-link {{ request()->is('jenis_gabah') ? 'active' : '' }}"
         title="Lihat dan kelola jenis gabah">Jenis Gabah</a>
     <a href="{{ url('/data_device') }}" class="btn btn-link {{ request()->is('data_device') ? 'active' : '' }}"
-        title="Lihat data sensor">Alat Sensor</a>
+        title="Lihat data sensor">Perangkat IoT</a>
     <a href="{{ url('/roles') }}" class="btn btn-link {{ request()->is('roles') ? 'active' : '' }}"
-        title="Kelola pengaturan role pengguna">Role Management</a>
+        title="Kelola pengaturan role pengguna">Pengelolaan Pengguna</a>
 </div>

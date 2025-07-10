@@ -26,12 +26,9 @@
             fill: white;
         }
 
-        /* Css Modal Add */
         .custom-input {
             background-color: #FDFDFD;
-            /* putih sedikit abu-abu */
             border: 1px solid #DAD9D9;
-            /* border 1px abu-abu */
             border-radius: 12px;
             padding: 10px;
             color: #989898;
@@ -50,14 +47,11 @@
             background-color: #163075;
         }
 
-        /* css judul halaman */
         .estetik-card {
             width: 100%;
-            /* background: linear-gradient(135deg, #1441ac1f, #f9fafe); */
             border-left: 7px solid #1E3B8A;
             border-radius: 16px;
             box-shadow: 0 4px 18px rgba(30, 59, 138, 0.07);
-            /* animation: float 3s ease-in-out infinite; <-- dihapus */
             transition: all 0.3s ease;
             overflow: hidden;
         }
@@ -99,7 +93,6 @@
     <div class="add-button mb-3">
         <button type="button" class="btn btn-primary d-flex align-items-center gap-1" data-bs-toggle="modal"
             data-bs-target="#tambahDataModal" style="background-color: #1E3B8A; border-radius: 12px; border: none;">
-            <!-- Icon -->
             <svg width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"
                     d="M7.75 15.8229C7.75 15.4412 7.82517 15.0633 7.97122 14.7107C8.11728 14.3581 8.33135 14.0377 8.60122 13.7678C8.87109 13.498 9.19147 13.2839 9.54408 13.1379C9.89668 12.9918 10.2746 12.9166 10.6562 12.9166C11.0379 12.9166 11.4158 12.9918 11.7684 13.1379C12.121 13.2839 12.4414 13.498 12.7113 13.7678C12.9811 14.0377 13.1952 14.3581 13.3413 14.7107C13.4873 15.0633 13.5625 15.4412 13.5625 15.8229C13.5625 16.5937 13.2563 17.3329 12.7113 17.8779C12.1663 18.4229 11.427 18.7291 10.6562 18.7291C9.88546 18.7291 9.14625 18.4229 8.60122 17.8779C8.05619 17.3329 7.75 16.5937 7.75 15.8229ZM10.6562 14.8541C10.3993 14.8541 10.1529 14.9562 9.97124 15.1379C9.78956 15.3195 9.6875 15.5659 9.6875 15.8229C9.6875 16.0798 9.78956 16.3262 9.97124 16.5079C10.1529 16.6896 10.3993 16.7916 10.6562 16.7916C10.9132 16.7916 11.1596 16.6896 11.3413 16.5079C11.5229 16.3262 11.625 16.0798 11.625 15.8229C11.625 15.5659 11.5229 15.3195 11.3413 15.1379C11.1596 14.9562 10.9132 14.8541 10.6562 14.8541ZM14.8542 15.8229C14.8542 15.5659 14.9562 15.3195 15.1379 15.1379C15.3196 14.9562 15.566 14.8541 15.8229 14.8541H19.0521C19.309 14.8541 19.5554 14.9562 19.7371 15.1379C19.9188 15.3195 20.0208 15.5659 20.0208 15.8229C20.0208 16.0798 19.9188 16.3262 19.7371 16.5079C19.5554 16.6896 19.309 16.7916 19.0521 16.7916H15.8229C15.566 16.7916 15.3196 16.6896 15.1379 16.5079C14.9562 16.3262 14.8542 16.0798 14.8542 15.8229ZM7.75 10.0104C7.75 9.75345 7.85206 9.50704 8.03374 9.32537C8.21542 9.14369 8.46182 9.04163 8.71875 9.04163H19.0521C19.309 9.04163 19.5554 9.14369 19.7371 9.32537C19.9188 9.50704 20.0208 9.75345 20.0208 10.0104C20.0208 10.2673 19.9188 10.5137 19.7371 10.6954C19.5554 10.8771 19.309 10.9791 19.0521 10.9791H8.71875C8.46182 10.9791 8.21542 10.8771 8.03374 10.6954C7.85206 10.5137 7.75 10.2673 7.75 10.0104Z"
@@ -142,46 +135,40 @@
     <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="max-width: 400px;">
             <div class="modal-content">
-                <!-- Header Modal -->
                 <div class="modal-header justify-content-center position-relative">
                     <h5 class="modal-title text-center w-100" id="tambahDataModalLabel"
                         style="margin-top: 15px; margin-bottom: 5px;">Form Validasi</h5>
                     <button type="button" class="btn-close position-absolute end-0 top-0 mt-3 me-3" data-bs-dismiss="modal"
                         aria-label="Tutup"></button>
                 </div>
-                <form id="formTambahData" action="" method="POST">
+                <form id="formTambahData" action="/training-data" method="POST">
                     @csrf
                     <div class="modal-body" style="padding: 20px 27px 40px 27px;">
                         <div class="row g-3">
-                            <!-- Berat Gabah dan Suhu Gabah -->
                             <div class="col-md-6">
                                 <label for="berat_gabah" class="form-label" style="color: #4F4F4F; font-weight: 400">Berat
                                     Gabah (Kg)</label>
-                                <input type="number" step="any" class="form-control custom-input" name="berat_gabah"
+                                <input type="number" step="any" class="form-control custom-input" name="Weight"
                                     id="berat_gabah" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="suhu_gabah" class="form-label" style="color: #4F4F4F; font-weight: 400">Suhu
                                     Gabah (°C)</label>
-                                <input type="number" step="any" class="form-control custom-input" name="suhu_gabah"
+                                <input type="number" step="any" class="form-control custom-input" name="GrainTemperature"
                                     id="suhu_gabah" required>
                             </div>
-
-                            <!-- Suhu Ruangan dan Kadar Air Awal -->
                             <div class="col-md-6">
                                 <label for="suhu_ruangan" class="form-label" style="color: #4F4F4F; font-weight: 400">Suhu
                                     Ruangan (°C)</label>
-                                <input type="number" step="any" class="form-control custom-input" name="suhu_ruangan"
+                                <input type="number" step="any" class="form-control custom-input" name="RoomTemperature"
                                     id="suhu_ruangan" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="kadar_air_awal" class="form-label"
                                     style="color: #4F4F4F; font-weight: 400">Kadar Air Awal (%)</label>
                                 <input type="number" step="any" class="form-control custom-input"
-                                    name="kadar_air_awal" id="kadar_air_awal" required>
+                                    name="GrainMoisture" id="kadar_air_awal" required>
                             </div>
-
-                            <!-- Kadar Air Akhir dan Durasi Nyata -->
                             <div class="col-md-6">
                                 <label for="kadar_air_akhir" class="form-label"
                                     style="color: #4F4F4F; font-weight: 400">Kadar Air Akhir (%)</label>
@@ -192,17 +179,14 @@
                                 <label for="durasi_nyata" class="form-label"
                                     style="color: #4F4F4F; font-weight: 400">Durasi Nyata (menit)</label>
                                 <input type="number" step="any" class="form-control custom-input"
-                                    name="durasi_nyata" id="durasi_nyata" required>
+                                    name="DryingTime" id="durasi_nyata" required>
                             </div>
-
-                            <!-- Tanggal -->
                             <div class="col-12">
                                 <label for="tanggal" class="form-label"
                                     style="color: #4F4F4F; font-weight: 400">Tanggal</label>
                                 <input type="date" class="form-control custom-input" name="tanggal" id="tanggal"
                                     required>
                             </div>
-
                             <div style="margin-top: 30px;">
                                 <button style="height: 43px; font-size: 16px; font-weight: 700; letter-spacing: 2px;"
                                     type="submit" class="btn custom-save-btn w-100">Simpan</button>
@@ -225,13 +209,45 @@
 
     <script>
         jQuery(document).ready(function($) {
+            // Flatten the nested API data for DataTables
+            function flattenData(data) {
+                let flattened = [];
+                data.forEach((group, groupIndex) => {
+                    group.measurements.forEach((measurement, measurementIndex) => {
+                        flattened.push({
+                            id: `${groupIndex}-${measurementIndex}`, // Unique ID for actions
+                            berat_gabah: measurement.Weight,
+                            suhu_gabah: measurement.GrainTemperature,
+                            suhu_ruangan: measurement.RoomTemperature,
+                            kadar_air_awal: measurement.GrainMoisture,
+                            kadar_air_akhir: measurement.GrainMoisture, // Placeholder, as API doesn't provide final moisture
+                            durasi_nyata: group.DryingTime,
+                            tanggal: '-' // Placeholder, as API doesn't provide date
+                        });
+                    });
+                });
+                return flattened;
+            }
+
             $('#data-table').DataTable({
                 processing: true,
-                serverSide: true,
-                ajax: '{{ route('validasi.index') }}',
-                columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
+                serverSide: false,
+                ajax: {
+                    url: '{{ config('services.api.base_url') }}/training-data',
+                    dataSrc: function(json) {
+                        if (json.error) {
+                            alert('Failed to fetch training data: ' + json.error);
+                            return [];
+                        }
+                        return flattenData(json);
+                    }
+                },
+                columns: [
+                    {
+                        data: null,
+                        render: function(data, type, row, meta) {
+                            return meta.row + 1;
+                        },
                         orderable: false,
                         searchable: false
                     },
@@ -264,22 +280,68 @@
                         name: 'tanggal'
                     },
                     {
-                        data: 'aksi',
+                        data: null,
                         name: 'aksi',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
                             return `
-                <button class="btn btn-sm" style="border: none;" onclick="editData(${row.id})">
-                    <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
-                </button>
-                <button class="btn btn-sm" style="border: none;" onclick="deleteData(${row.id})">
-                    <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
-                </button>`;
+                                <button class="btn btn-sm" style="border: none;" onclick="editData('${row.id}')">
+                                    <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
+                                </button>
+                                <button class="btn btn-sm" style="border: none;" onclick="deleteData('${row.id}')">
+                                    <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
+                                </button>`;
                         }
                     }
-                ],
+                ]
             });
+
+            // Handle form submission via AJAX
+            $('#formTambahData').on('submit', function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        $('#tambahDataModal').modal('hide');
+                        $('#data-table').DataTable().ajax.reload();
+                        alert('Data saved successfully!');
+                    },
+                    error: function(xhr) {
+                        alert('Failed to save data: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                    }
+                });
+            });
+
+            // Placeholder edit and delete functions
+            window.editData = function(id) {
+                alert('Edit functionality not implemented. ID: ' + id);
+                // TODO: Fetch data by ID and populate modal for editing
+            };
+
+            window.deleteData = function(id) {
+                if (confirm('Are you sure you want to delete this data?')) {
+                    $.ajax({
+                        url: '/training-data/' + id,
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function() {
+                            $('#data-table').DataTable().ajax.reload();
+                            alert('Data deleted successfully!');
+                        },
+                        error: function(xhr) {
+                            alert('Failed to delete data: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                        }
+                    });
+                }
+            };
         });
     </script>
 @endsection

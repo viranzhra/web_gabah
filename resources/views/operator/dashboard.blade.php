@@ -76,7 +76,7 @@
                         <div class="mb-3">
                             <label for="kadar_air_target" class="form-label">Target Kadar Air Gabah (%)</label>
                             <input type="number" name="kadar_air_target" id="kadar_air_target" class="form-control"
-                                step="0.1" required min="0" max="100" />
+                                value="14" step="0.1" readonly />
                         </div>
                         <div class="mb-3">
                             <label for="suhu_gabah" class="form-label">Suhu Gabah (°C)</label>
@@ -91,6 +91,11 @@
                         <div class="mb-3">
                             <label for="kadar_air_gabah" class="form-label">Kadar Air Gabah (%)</label>
                             <input type="number" name="kadar_air_gabah" id="kadar_air_gabah" class="form-control"
+                                step="0.1" style="background-color: #eceff4;" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label for="suhu_pembakaran" class="form-label">Suhu Pembakaran (°C)</label>
+                            <input type="number" name="suhu_pembakaran" id="suhu_pembakaran" class="form-control"
                                 step="0.1" style="background-color: #eceff4;" readonly />
                         </div>
                         <div style="margin-top: 30px;">
@@ -109,22 +114,17 @@
         <div class="modal-dialog" style="max-width: 400px;">
             <div class="modal-content"
                 style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
-                <!-- Header -->
                 <div class="modal-header justify-content-center position-relative" style="background-color: #f8f9fa;">
                     <h5 class="modal-title text-center w-100 fw-semibold" id="confirmStopModalLabel"
                         style="padding: 0px; margin: 0;">
                         Konfirmasi Penghentian Proses
                     </h5>
-                    {{-- <button type="button" class="btn-close position-absolute end-0 top-0 mt-3 me-3"
-                    data-bs-dismiss="modal" aria-label="Tutup"></button> --}}
+                    <button type="button" class="btn-close position-absolute end-0 top-0 mt-3 me-3"
+                        data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
-
-                <!-- Body -->
                 <div class="modal-body text-center" style="padding: 25px 30px; font-size: 14px; color: #333;">
                     <p style="margin: 0;">Apakah Anda yakin ingin menghentikan proses pengeringan?</p>
                 </div>
-
-                <!-- Footer -->
                 <div class="modal-footer justify-content-center" style="padding: 10px;">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
                         style="width: 100px; border-radius: 6px;">
@@ -140,7 +140,7 @@
     </div>
 
     <!-- Grid Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         <!-- Card 1: Suhu Gabah -->
         <div style="height: 90px;"
             class="bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-[12px] shadow-md p-6 border border-[#A3BFFA]/60 flex items-center cursor-pointer relative"
@@ -156,12 +156,11 @@
                 <path d="M23 26.8333V9.58331" stroke="#1E3A8A" stroke-width="2.2" stroke-linecap="round" />
             </svg>
             <div>
-                <h3 class="text-lg -mt-1" style="font-weight: 500;">Suhu Gabah</h3>
-                <p id="suhuGabahText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 17px;">0°C</p>
+                <h3 style="font-weight: 500;">Suhu Gabah</h3>
+                <p id="suhuGabahText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 16px;">0°C</p>
             </div>
-            <!-- Chevron Icon -->
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24"
-                fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" />
             </svg>
@@ -185,18 +184,38 @@
                 </defs>
             </svg>
             <div>
-                <h3 class="text-lg -mt-1" style="font-weight: 500;">Suhu Ruangan</h3>
-                <p id="suhuRuanganText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 17px;">0°C</p>
+                <h3 style="font-weight: 500;">Suhu Ruangan</h3>
+                <p id="suhuRuanganText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 16px;">0°C</p>
             </div>
-            <!-- Chevron Icon -->
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24"
-                fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" />
             </svg>
         </div>
 
-        <!-- Card 3: Estimasi Waktu Pengeringan -->
+        <!-- Card 3: Suhu Pembakaran -->
+        <div style="height: 90px;"
+            class="bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-[12px] shadow-md p-6 border border-[#A3BFFA]/60 flex items-center cursor-pointer relative"
+            onclick="handleCardClick('Suhu Pembakaran', document.getElementById('suhuPembakaranText').innerText, 'M12 40V8M8 36H16M4 8C4 9.06087 4.42143 10.0783 5.17157 10.8284C5.92172 11.5786 6.93913 12 8 12C9.06087 12 10.0783 11.5786 10.8284 10.8284C11.5786 10.0783 12 9.06087 12 8C12 6.93913 11.5786 5.92172 10.8284 5.17157C10.0783 4.42143 9.06087 4 8 4C6.93913 4 5.92172 4.42143 5.17157 5.17157C4.42143 5.92172 4 6.93913 4 8ZM32 40V8M28 36H36M24 8C24 9.06087 24.4214 10.0783 25.1716 10.8284C25.9217 11.5786 26.9391 12 28 12C29.0609 12 30.0783 11.5786 30.8284 10.8284C31.5786 10.0783 32 9.06087 32 8C32 6.93913 31.5786 5.92172 30.8284 5.17157C30.0783 4.42143 29.0609 4 28 4C26.9391 4 25.9217 4.42143 25.1716 5.17157C24.4214 5.92172 24 6.93913 24 8Z')">
+            <svg class="h-8 w-8 mr-4 text-[#1E3A8A]" width="40" height="40" viewBox="0 0 40 40" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 40V8M8 36H16M4 8C4 9.06087 4.42143 10.0783 5.17157 10.8284C5.92172 11.5786 6.93913 12 8 12C9.06087 12 10.0783 11.5786 10.8284 10.8284C11.5786 10.0783 12 9.06087 12 8C12 6.93913 11.5786 5.92172 10.8284 5.17157C10.0783 4.42143 9.06087 4 8 4C6.93913 4 5.92172 4.42143 5.17157 5.17157C4.42143 5.92172 4 6.93913 4 8ZM32 40V8M28 36H36M24 8C24 9.06087 24.4214 10.0783 25.1716 10.8284C25.9217 11.5786 26.9391 12 28 12C29.0609 12 30.0783 11.5786 30.8284 10.8284C31.5786 10.0783 32 9.06087 32 8C32 6.93913 31.5786 5.92172 30.8284 5.17157C30.0783 4.42143 29.0609 4 28 4C26.9391 4 25.9217 4.42143 25.1716 5.17157C24.4214 5.92172 24 6.93913 24 8Z"
+                    stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div>
+                <h3 style="font-weight: 500;">Suhu Pembakaran</h3>
+                <p id="suhuPembakaranText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 16px;">0°C</p>
+            </div>
+            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </div>
+
+        <!-- Card 4: Estimasi Waktu Pengeringan -->
         <div style="height: 90px;"
             class="bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-[12px] shadow-md p-6 border border-[#A3BFFA]/60 flex items-center cursor-pointer relative"
             onclick="handleCardClick('Estimasi Waktu Pengeringan', document.getElementById('durasiText').innerText, 'M24 6C14.0625 6 6 14.0625 6 24C6 33.9375 14.0625 42 24 42C33.9375 42 42 33.9375 42 24C42 14.0625 33.9375 6 24 6Z M24 12V25.5H33')">
@@ -209,12 +228,11 @@
                     stroke-linejoin="round" />
             </svg>
             <div>
-                <h3 class="text-lg -mt-1" style="font-weight: 500;">Estimasi Waktu Pengeringan</h3>
-                <p id="durasiText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 17px;">0 Menit</p>
+                <h3 style="font-weight: 500; font-size: 15px;">Estimasi Waktu Pengeringan</h3>
+                <p id="durasiText" class="text-[#1E3A8A]/80 text-xl" style="font-size: 16px;">0 jam 0 menit 0 detik | 0 menit</p>
             </div>
-            <!-- Chevron Icon -->
-            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24"
-                fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#1E3A8A]" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" />
             </svg>
@@ -238,606 +256,603 @@
     </div>
 
     <script>
-        // Retrieve Sanctum token from session
-        const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
-        const baseUrl = "{{ config('services.api.base_url') }}";
-        const POLLING_INTERVAL = 60000; // Interval polling setiap 60 detik
-        const INITIAL_POLLING_INTERVAL = 5000; // Polling lebih cepat untuk load awal (5 detik)
-        const MAX_RETRIES = 3; // Jumlah maksimum percobaan ulang untuk mengambil data sensor
+    // Retrieve Sanctum token from session
+    const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
+    const baseUrl = "{{ config('services.api.base_url') }}";
+    const POLLING_INTERVAL = 60000; // Interval polling setiap 60 detik
+    const INITIAL_POLLING_INTERVAL = 5000; // Polling lebih cepat untuk load awal (5 detik)
+    const MAX_RETRIES = 3; // Jumlah maksimum percobaan ulang untuk mengambil data sensor
 
-        // Global variables
-        let sensorInterval = null;
-        let statusText, kadarAirText, suhuGabahText, suhuRuanganText, durasiText, toggleButton, suhuGabahInput,
-            suhuRuanganInput, kadarAirGabahInput;
-        // Store initial and current sensor data per device_id
-        let sensorDataByDevice = {};
-        let initialData = {
+    // Global variables
+    let sensorInterval = null;
+    let statusText, kadarAirText, suhuGabahText, suhuRuanganText, suhuPembakaranText, durasiText, toggleButton, suhuGabahInput,
+        suhuRuanganInput, kadarAirGabahInput, suhuPembakaranInput;
+    // Store initial and current sensor data per device_id
+    let sensorDataByDevice = {};
+    let initialData = {
+        kadar_air_gabah: 0,
+        suhu_gabah: 0,
+        suhu_ruangan: 0,
+        suhu_pembakaran: 0,
+        durasi_rekomendasi: 0,
+        kadar_air_target: 14
+    };
+
+    // Helper function to format duration
+    function formatDuration(minutes) {
+        if (!isNumeric(minutes) || minutes <= 0) {
+            return '0 jam 0 menit 0 detik | 0 menit';
+        }
+        const totalMinutes = parseFloat(minutes);
+        const totalSeconds = totalMinutes * 60;
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutesPart = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+        return `${hours} jam ${minutesPart} menit ${seconds} detik | ${Math.round(totalMinutes)} menit`;
+    }
+
+    // Di dalam fetchSensorData, tambahkan log tambahan
+async function fetchSensorData(processId = null, retries = MAX_RETRIES) {
+    const url = processId ?
+        `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() }}&process_id=${processId}` :
+        `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() }}`;
+
+    console.log('Fetching sensor data from:', url);
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${sanctumToken}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch sensor data: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log('Sensor data received:', JSON.stringify(data, null, 2));
+        console.log('Average combustion temperature:', data.sensors?.avg_combustion_temperature ?? 'Not available');
+        if (data.sensors && data.sensors.data) {
+            data.sensors.data.forEach(sensor => {
+                console.log(`Device ${sensor.device_name}: suhu_pembakaran = ${sensor.suhu_pembakaran ?? 'Not available'}`);
+                sensorDataByDevice[sensor.device_name] = {
+                    kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
+                    suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
+                    suhu_ruangan: parseFloat(sensor.suhu_ruangan) || 0,
+                    suhu_pembakaran: parseFloat(sensor.suhu_pembakaran) || 0,
+                    timestamp: sensor.timestamp
+                };
+            });
+        }
+        updateUI(data);
+        updateModalForm(data.sensors);
+        return data;
+    } catch (err) {
+        console.error('Error fetching sensor data:', err);
+        if (retries > 0) {
+            console.log(`Retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return fetchSensorData(processId, retries - 1);
+        } else {
+            showNotification(`Gagal memuat data sensor: ${err.message}`, 'bg-red-500');
+            return {
+                sensors: {
+                    data: [],
+                    avg_grain_moisture: 0,
+                    avg_grain_temperature: 0,
+                    avg_room_temperature: 0,
+                    avg_combustion_temperature: null // Explicitly set to null for clarity
+                },
+                drying_process: null
+            };
+        }
+    }
+}
+
+// Di dalam updateUI, perbarui logika suhuPembakaranText
+function updateUI(data) {
+    const dryingProcess = data.drying_process;
+    const sensors = data.sensors || {};
+
+    kadarAirText.innerText = sensors && isNumeric(sensors.avg_grain_moisture) ?
+        `${sensors.avg_grain_moisture.toFixed(2)}%` : '0.00%';
+    suhuGabahText.innerText = sensors && isNumeric(sensors.avg_grain_temperature) ?
+        `${sensors.avg_grain_temperature.toFixed(2)}°C` : '0.00°C';
+    suhuRuanganText.innerText = sensors && isNumeric(sensors.avg_room_temperature) ?
+        `${sensors.avg_room_temperature.toFixed(2)}°C` : '0.00°C';
+    suhuPembakaranText.innerText = sensors && isNumeric(sensors.avg_combustion_temperature) ?
+        `${sensors.avg_combustion_temperature.toFixed(2)}°C` :
+        sensors && sensors.avg_combustion_temperature === null ? 'Data tidak tersedia' : '0.00°C';
+
+    // Log untuk debugging
+    console.log('Updating suhuPembakaranText with:', sensors.avg_combustion_temperature);
+
+    if (dryingProcess && dryingProcess.status === 'ongoing') {
+        statusText.innerText = 'Aktif';
+        toggleButton.innerText = 'STOP';
+        toggleButton.removeAttribute('data-bs-toggle');
+        toggleButton.removeAttribute('data-bs-target');
+        toggleButton.onclick = () => showConfirmStopModal(dryingProcess.process_id);
+        durasiText.innerText = formatDuration(dryingProcess.durasi_rekomendasi);
+        if (!sensorInterval) {
+            startSensorMonitoring(dryingProcess.process_id);
+        }
+    } else {
+        statusText.innerText = 'Nonaktif';
+        toggleButton.innerText = 'START';
+        toggleButton.setAttribute('data-bs-toggle', 'modal');
+        toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
+        toggleButton.onclick = null;
+        durasiText.innerText = '0 jam 0 menit 0 detik | 0 menit';
+        if (!sensorInterval) {
+            startSensorMonitoring(null);
+        }
+    }
+}
+
+    // Reset UI with formatted duration
+    function resetUI() {
+        statusText.innerText = 'Nonaktif';
+        toggleButton.innerText = 'START';
+        toggleButton.setAttribute('data-bs-toggle', 'modal');
+        toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
+        toggleButton.onclick = null;
+        kadarAirText.innerText = '0.00%';
+        suhuGabahText.innerText = '0.00°C';
+        suhuRuanganText.innerText = '0.00°C';
+        suhuPembakaranText.innerText = '0.00°C';
+        durasiText.innerText = '0 jam 0 menit 0 detik | 0 menit';
+        suhuGabahInput.value = '';
+        suhuRuanganInput.value = '';
+        kadarAirGabahInput.value = '';
+        suhuPembakaranInput.value = '';
+        initialData = {
             kadar_air_gabah: 0,
             suhu_gabah: 0,
             suhu_ruangan: 0,
+            suhu_pembakaran: 0,
             durasi_rekomendasi: 0,
-            kadar_air_target: 0
+            kadar_air_target: 14
+        };
+        sensorDataByDevice = {};
+        if (sensorInterval) {
+            clearInterval(sensorInterval);
+            sensorInterval = null;
+        }
+    }
+
+    // Update modal form with sensor data
+    function updateModalForm(sensors) {
+        suhuGabahInput.value = sensors && isNumeric(sensors.avg_grain_temperature) ? sensors.avg_grain_temperature.toFixed(2) : '';
+        suhuRuanganInput.value = sensors && isNumeric(sensors.avg_room_temperature) ? sensors.avg_room_temperature.toFixed(2) : '';
+        kadarAirGabahInput.value = sensors && isNumeric(sensors.avg_grain_moisture) ? sensors.avg_grain_moisture.toFixed(2) : '';
+        suhuPembakaranInput.value = sensors && isNumeric(sensors.avg_combustion_temperature) ? sensors.avg_combustion_temperature.toFixed(2) : '';
+    }
+
+    // Start sensor monitoring
+    function startSensorMonitoring(processId) {
+        if (sensorInterval) {
+            clearInterval(sensorInterval);
+        }
+        sensorInterval = setInterval(() => {
+            fetchSensorData(processId)
+                .then(data => {
+                    const sensors = data.sensors || {};
+                    const dryingProcess = data.drying_process;
+                    if (dryingProcess && dryingProcess.status === 'ongoing' && sensors.target_moisture_achieved) {
+                        completeProcess(dryingProcess.process_id);
+                        clearInterval(sensorInterval);
+                        sensorInterval = null;
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        }, POLLING_INTERVAL);
+    }
+
+    // Show confirmation stop modal
+    function showConfirmStopModal(processId) {
+        const confirmButton = document.getElementById('confirmStopButton');
+        confirmButton.onclick = () => completeProcess(processId);
+        const modal = new bootstrap.Modal(document.getElementById('confirmStopModal'));
+        modal.show();
+    }
+
+    // Complete drying process
+    async function completeProcess(processId) {
+        const confirmModalElement = document.getElementById('confirmStopModal');
+        const confirmModal = bootstrap.Modal.getInstance(confirmModalElement);
+
+        const data = await fetchSensorData(processId);
+        const sensors = data.sensors || {};
+
+        try {
+            const response = await fetch(`${baseUrl}/operator/drying-process/${processId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sanctumToken}`,
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    timestamp_selesai: new Date().toISOString(),
+                    kadar_air_akhir: parseFloat(sensors.avg_grain_moisture) || 0,
+                    suhu_gabah_akhir: parseFloat(sensors.avg_grain_temperature) || 0,
+                    suhu_ruangan_akhir: parseFloat(sensors.avg_room_temperature) || 0,
+                    suhu_pembakaran_akhir: parseFloat(sensors.avg_combustion_temperature) || 0
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal menyelesaikan proses: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                if (confirmModal) {
+                    confirmModal.hide();
+                    confirmModalElement.classList.remove('show');
+                    confirmModalElement.style.display = 'none';
+                    document.querySelector('.modal-backdrop')?.remove();
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }
+
+                showNotification('Proses pengeringan selesai!', 'bg-green-500', true);
+                resetUI();
+            } else {
+                showNotification('Gagal menyelesaikan proses: ' + (result.error || 'Kesalahan server.'), 'bg-red-500');
+            }
+        } catch (err) {
+            console.error('Error completing process:', err);
+            showNotification(`Gagal menyelesaikan proses: ${err.message}`, 'bg-red-500');
+        }
+    }
+
+    // Show notification
+    function showNotification(msg, bgClass, reload = false) {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const modalElement = document.getElementById('tambahDataModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        const confirmModalElement = document.getElementById('confirmStopModal');
+        const confirmModal = bootstrap.Modal.getInstance(confirmModalElement);
+
+        if (modal) {
+            modal.hide();
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+        }
+        if (confirmModal) {
+            confirmModal.hide();
+            confirmModalElement.classList.remove('show');
+            confirmModalElement.style.display = 'none';
+        }
+        document.querySelector('.modal-backdrop')?.remove();
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        notificationMessage.innerText = msg;
+        notificationMessage.className = `px-4 py-2 rounded-lg shadow-lg text-white ${bgClass}`;
+        notification.classList.remove('hidden');
+
+        setTimeout(() => {
+            notification.classList.add('hidden');
+            if (reload) {
+                location.reload();
+            }
+        }, 5000);
+    }
+
+    // Handle card click with formatted duration in modal
+    function handleCardClick(title, currentValue, iconPath) {
+        const modalContent = document.getElementById('modal-device-data');
+        modalContent.innerHTML = '';
+
+        document.getElementById('modal-title').textContent = `Detail ${title}`;
+        document.getElementById('modal-icon-path').setAttribute('d', iconPath);
+
+        const dataKeyMap = {
+            'Kadar Air Gabah': { key: 'kadar_air_gabah', unit: '%', avgKey: 'avg_grain_moisture' },
+            'Suhu Gabah': { key: 'suhu_gabah', unit: '°C', avgKey: 'avg_grain_temperature' },
+            'Suhu Ruangan': { key: 'suhu_ruangan', unit: '°C', avgKey: 'avg_room_temperature' },
+            'Suhu Pembakaran': { key: 'suhu_pembakaran', unit: '°C', avgKey: 'avg_combustion_temperature' },
+            'Estimasi Waktu Pengeringan': { key: 'durasi_rekomendasi', unit: '', avgKey: null }
         };
 
-        // Fetch sensor data with retry mechanism
-        async function fetchSensorData(processId = null, retries = MAX_RETRIES) {
-            const url = processId ?
-                `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() }}&process_id=${processId}` :
-                `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() }}`;
+        const { key, unit, avgKey } = dataKeyMap[title] || { key: '', unit: '', avgKey: null };
 
-            console.log('Fetching sensor data from:', url);
-            console.log('Using token:', sanctumToken);
+        if (title === 'Kadar Air Gabah' || title === 'Suhu Gabah' || title === 'Suhu Pembakaran') {
+            const initialHeader = document.createElement('p');
+            initialHeader.className = 'text-[#1E3A8A] text-lg font-bold mb-2';
+            initialHeader.textContent = `${title} Awal`;
+            modalContent.appendChild(initialHeader);
 
-            // Set loading state
-            kadarAirText.innerText = '...%';
-            suhuGabahText.innerText = '...°C';
-            suhuRuanganText.innerText = '...°C';
+            const initialAvg = document.createElement('p');
+            initialAvg.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
+            initialAvg.textContent = `Rata-rata: ${initialData[key].toFixed(2)}${unit}`;
+            modalContent.appendChild(initialAvg);
 
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'Accept': 'application/json'
-                    }
-                });
+            Object.entries(sensorDataByDevice).forEach(([deviceName, data]) => {
+                const deviceP = document.createElement('p');
+                deviceP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
+                deviceP.textContent = `${deviceName}: ${isNumeric(data[key]) ? data[key].toFixed(2) : '0.00'}${unit}`;
+                modalContent.appendChild(deviceP);
+            });
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch sensor data: ${response.status} ${response.statusText}`);
-                }
+            const hr = document.createElement('hr');
+            hr.className = 'my-3 border-[#A3BFFA]/60';
+            modalContent.appendChild(hr);
 
-                const data = await response.json();
-                console.log('Sensor data received:', data);
+            const currentHeader = document.createElement('p');
+            currentHeader.className = 'text-[#1E3A8A] text-lg font-bold mb-2';
+            currentHeader.textContent = `${title} Saat Ini`;
+            modalContent.appendChild(currentHeader);
 
-                // Update initial values if drying process is ongoing
-                if (data.drying_process && data.drying_process.status === 'ongoing') {
-                    initialData = {
-                        kadar_air_gabah: parseFloat(data.drying_process.kadar_air_gabah) || 0,
-                        suhu_gabah: parseFloat(data.drying_process.suhu_gabah) || 0,
-                        suhu_ruangan: parseFloat(data.drying_process.suhu_ruangan) || 0,
-                        durasi_rekomendasi: parseFloat(data.drying_process.durasi_rekomendasi) || 0,
-                        kadar_air_target: parseFloat(data.drying_process.kadar_air_target) || 0
-                    };
-                } else {
-                    initialData = {
-                        kadar_air_gabah: 0,
-                        suhu_gabah: 0,
-                        suhu_ruangan: 0,
-                        durasi_rekomendasi: 0,
-                        kadar_air_target: 0
-                    };
-                }
+            const currentAvg = document.createElement('p');
+            currentAvg.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
+            currentAvg.textContent = `Rata-rata: ${parseFloat(currentValue) ? parseFloat(currentValue).toFixed(2) : '0.00'}${unit}`;
+            modalContent.appendChild(currentAvg);
 
-                // Update sensor data per device_id
-                sensorDataByDevice = {};
-                if (data.sensors && data.sensors.data) {
-                    data.sensors.data.forEach(sensor => {
-                        sensorDataByDevice[sensor.device_name] = {
-                            kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
-                            suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
-                            suhu_ruangan: parseFloat(sensor.suhu_ruangan) || 0,
-                            timestamp: sensor.timestamp
-                        };
-                    });
-                }
+            Object.entries(sensorDataByDevice).forEach(([deviceName, data]) => {
+                const deviceP = document.createElement('p');
+                deviceP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
+                deviceP.textContent = `${deviceName}: ${isNumeric(data[key]) ? data[key].toFixed(2) : '0.00'}${unit}`;
+                modalContent.appendChild(deviceP);
+            });
 
-                updateUI(data);
-                updateModalForm(data.sensors);
-                return data;
-            } catch (err) {
-                console.error('Error fetching sensor data:', err);
-                if (retries > 0) {
-                    console.log(`Retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
-                    return fetchSensorData(processId, retries - 1);
-                } else {
-                    showNotification(`Gagal memuat data sensor: ${err.message}`, 'bg-red-500');
-                    kadarAirText.innerText = '0.00%';
-                    suhuGabahText.innerText = '0.00°C';
-                    suhuRuanganText.innerText = '0.00°C';
-                    return {
-                        sensors: {
-                            data: []
-                        },
-                        drying_process: null
-                    };
-                }
+            if (Object.keys(sensorDataByDevice).length === 0) {
+                const noDataP = document.createElement('p');
+                noDataP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
+                noDataP.textContent = 'Tidak ada data sensor saat ini.';
+                modalContent.appendChild(noDataP);
             }
+        } else if (title === 'Suhu Ruangan') {
+            const initialP = document.createElement('p');
+            initialP.className = 'text-[#1E3A8A]/80 text-base mb-2';
+            initialP.textContent = `${title} Awal: ${initialData[key].toFixed(2)}${unit}`;
+            modalContent.appendChild(initialP);
+
+            const currentP = document.createElement('p');
+            currentP.className = 'text-[#1E3A8A]/80 text-base mb-2';
+            currentP.textContent = `${title} Saat Ini: ${parseFloat(currentValue) ? parseFloat(currentValue).toFixed(2) : '0.00'}${unit}`;
+            modalContent.appendChild(currentP);
+        } else if (title === 'Estimasi Waktu Pengeringan') {
+            const durationP = document.createElement('p');
+            durationP.className = 'text-[#1E3A8A]/80 text-base mb-2';
+            durationP.textContent = `Estimasi Durasi: ${formatDuration(initialData.durasi_rekomendasi)}`;
+            modalContent.appendChild(durationP);
+
+            const targetP = document.createElement('p');
+            targetP.className = 'text-[#1E3A8A]/80 text-base mb-2';
+            targetP.textContent = `Target Kadar Air: ${initialData.kadar_air_target.toFixed(2)}%`;
+            modalContent.appendChild(targetP);
         }
 
-        function updateUI(data) {
-            const dryingProcess = data.drying_process;
-            const sensors = data.sensors || {};
+        document.getElementById('modal').classList.remove('hidden');
+    }
 
-            // Update sensor data (average values)
-            kadarAirText.innerText = sensors && isNumeric(sensors.avg_grain_moisture) ?
-                `${sensors.avg_grain_moisture.toFixed(2)}%` : '0.00%';
-            suhuGabahText.innerText = sensors && isNumeric(sensors.avg_grain_temperature) ?
-                `${sensors.avg_grain_temperature.toFixed(2)}°C` : '0.00°C';
-            suhuRuanganText.innerText = sensors && isNumeric(sensors.avg_room_temperature) ?
-                `${sensors.avg_room_temperature.toFixed(2)}°C` : '0.00°C';
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+    }
 
-            // Update process-related UI
-            if (dryingProcess && dryingProcess.status === 'ongoing') {
+    function isNumeric(value) {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+
+    // Initialize UI
+    document.addEventListener('DOMContentLoaded', function() {
+        statusText = document.getElementById('statusText');
+        kadarAirText = document.getElementById('kadarAirText');
+        suhuGabahText = document.getElementById('suhuGabahText');
+        suhuRuanganText = document.getElementById('suhuRuanganText');
+        suhuPembakaranText = document.getElementById('suhuPembakaranText');
+        durasiText = document.getElementById('durasiText');
+        toggleButton = document.getElementById('toggleButton');
+        suhuGabahInput = document.getElementById('suhu_gabah');
+        suhuRuanganInput = document.getElementById('suhu_ruangan');
+        kadarAirGabahInput = document.getElementById('kadar_air_gabah');
+        suhuPembakaranInput = document.getElementById('suhu_pembakaran');
+
+        // Initial fetch with faster polling until data is received
+        let initialPollInterval = setInterval(() => {
+            fetchSensorData().then(data => {
+                if (data.sensors && isNumeric(data.sensors.avg_combustion_temperature)) {
+                    console.log('Valid combustion temperature received:', data.sensors.avg_combustion_temperature);
+                    clearInterval(initialPollInterval); // Stop polling once valid data is received
+                }
+            });
+        }, INITIAL_POLLING_INTERVAL);
+
+        document.getElementById('tambahDataModal').addEventListener('show.bs.modal', function() {
+            fetchSensorData();
+        });
+    });
+
+    // Submit predict form
+    document.getElementById('predictForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const modalElement = document.getElementById('tambahDataModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // Reset error message
+        errorMessageDiv.style.display = 'none';
+        errorMessageDiv.innerText = '';
+
+        // Validasi data sensor
+        const suhuGabah = parseFloat(suhuGabahInput.value);
+        const suhuRuangan = parseFloat(suhuRuanganInput.value);
+        const kadarAirGabah = parseFloat(kadarAirGabahInput.value);
+        const suhuPembakaran = parseFloat(suhuPembakaranInput.value);
+        const jenisGabah = document.getElementById('jenis_gabah').value;
+        const beratGabah = parseFloat(document.getElementById('berat_gabah').value);
+        const kadarAirTarget = parseFloat(document.getElementById('kadar_air_target').value);
+
+        // Validasi input
+        if (!isNumeric(suhuGabah) || !isNumeric(suhuRuangan) || !isNumeric(kadarAirGabah) || !isNumeric(suhuPembakaran)) {
+            showNotification('Data sensor tidak lengkap atau tidak valid.', 'bg-red-500');
+            return;
+        }
+        if (!jenisGabah) {
+            showNotification('Jenis gabah harus dipilih.', 'bg-red-500');
+            return;
+        }
+        if (!isNumeric(beratGabah) || beratGabah <= 0) {
+            showNotification('Berat gabah harus lebih besar dari 0.', 'bg-red-500');
+            return;
+        }
+        if (!isNumeric(kadarAirTarget) || kadarAirTarget < 0 || kadarAirTarget > 100) {
+            showNotification('Target kadar air harus di antara 0 dan 100.', 'bg-red-500');
+            return;
+        }
+
+        // Validasi token
+        if (!sanctumToken) {
+            showNotification('Anda harus login untuk menyimpan data prediksi.', 'bg-red-500');
+            setTimeout(() => {
+                window.location.href = '{{ route('login') }}';
+            }, 2000);
+            return;
+        }
+
+        try {
+            // Fetch CSRF token
+            await fetch('/sanctum/csrf-cookie', {
+                method: 'GET'
+            });
+
+            // Data untuk dikirim ke Flask
+            const data = {
+                nama_jenis: jenisGabah,
+                kadar_air_gabah: kadarAirGabah,
+                suhu_gabah: suhuGabah,
+                suhu_ruangan: suhuRuangan,
+                suhu_pembakaran: suhuPembakaran,
+                berat_gabah: beratGabah,
+                kadar_air_target: kadarAirTarget
+            };
+
+            console.log('Data yang dikirim ke ML:', JSON.stringify(data, null, 2));
+
+            // Kirim data ke Flask
+            const predictResponse = await fetch('http://192.168.43.142:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!predictResponse.ok) {
+                return predictResponse.json().then(errorData => {
+                    throw new Error(errorData.error || `Gagal mendapatkan prediksi: ${predictResponse.statusText}`);
+                }).catch(() => {
+                    throw new Error('Tidak dapat terhubung ke server ML. Pastikan server ML berjalan di http://192.168.43.142:5000.');
+                });
+            }
+
+            const predictData = await predictResponse.json();
+            console.log('Respons dari ML:', predictData);
+
+            // Validasi respons Flask
+            if (!predictData.durasi_rekomendasi || predictData.durasi_rekomendasi < 0) {
+                throw new Error('Respons Flask tidak valid: durasi_rekomendasi tidak valid atau hilang.');
+            }
+
+            const durasiMenit = parseFloat(predictData.durasi_rekomendasi);
+
+            // Data untuk dikirim ke Laravel
+            const storeData = {
+                nama_jenis: jenisGabah,
+                suhu_gabah_awal: suhuGabah,
+                suhu_ruangan_awal: suhuRuangan,
+                suhu_pembakaran_awal: suhuPembakaran,
+                kadar_air_awal: kadarAirGabah,
+                kadar_air_target: kadarAirTarget,
+                berat_gabah: beratGabah,
+                durasi_rekomendasi: durasiMenit
+            };
+
+            console.log('Data yang dikirim ke /operator/prediksi/store:', JSON.stringify(storeData, null, 2));
+
+            // Kirim data ke Laravel
+            const storeResponse = await fetch(`${baseUrl}/operator/prediksi/store`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${sanctumToken}`,
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(storeData)
+            });
+
+            if (!storeResponse.ok) {
+                if (storeResponse.status === 401) {
+                    showNotification('Sesi Anda telah berakhir. Silakan login kembali.', 'bg-red-500');
+                    setTimeout(() => {
+                        window.location.href = '{{ route('login') }}';
+                    }, 2000);
+                    throw new Error('Unauthorized');
+                }
+                const err = await storeResponse.json();
+                throw new Error(err.error || `Gagal menyimpan: ${storeResponse.statusText}`);
+            }
+
+            const storeResult = await storeResponse.json();
+            if (storeResult.success) {
+                const processId = storeResult.data.process_id;
+                toggleButton.onclick = () => showConfirmStopModal(processId);
+
+                // Update UI dengan data dari respons
                 statusText.innerText = 'Aktif';
                 toggleButton.innerText = 'STOP';
                 toggleButton.removeAttribute('data-bs-toggle');
                 toggleButton.removeAttribute('data-bs-target');
-                toggleButton.onclick = () => showConfirmStopModal(dryingProcess.process_id);
-                durasiText.innerText = `${parseFloat(dryingProcess.durasi_rekomendasi || 0).toFixed(2)} Menit`;
+                toggleButton.onclick = () => showConfirmStopModal(processId);
+                kadarAirText.innerText = `${kadarAirGabah.toFixed(2)}%`;
+                suhuGabahText.innerText = `${suhuGabah.toFixed(2)}°C`;
+                suhuRuanganText.innerText = `${suhuRuangan.toFixed(2)}°C`;
+                suhuPembakaranText.innerText = `${suhuPembakaran.toFixed(2)}°C`;
+                durasiText.innerText = formatDuration(durasiMenit);
 
-                if (!sensorInterval) {
-                    startSensorMonitoring(dryingProcess.process_id);
-                }
-            } else {
-                statusText.innerText = 'Nonaktif';
-                toggleButton.innerText = 'START';
-                toggleButton.setAttribute('data-bs-toggle', 'modal');
-                toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
-                toggleButton.onclick = null;
-                durasiText.innerText = '0.00 Menit';
-
-                if (!sensorInterval) {
-                    startSensorMonitoring(null);
-                }
-            }
-        }
-
-        function resetUI() {
-            statusText.innerText = 'Nonaktif';
-            toggleButton.innerText = 'START';
-            toggleButton.setAttribute('data-bs-toggle', 'modal');
-            toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
-            toggleButton.onclick = null;
-            kadarAirText.innerText = '0.00%';
-            suhuGabahText.innerText = '0.00°C';
-            suhuRuanganText.innerText = '0.00°C';
-            durasiText.innerText = '0.00 Menit';
-            suhuGabahInput.value = '';
-            suhuRuanganInput.value = '';
-            kadarAirGabahInput.value = '';
-            initialData = {
-                kadar_air_gabah: 0,
-                suhu_gabah: 0,
-                suhu_ruangan: 0,
-                durasi_rekomendasi: 0,
-                kadar_air_target: 0
-            };
-            sensorDataByDevice = {};
-            if (sensorInterval) {
-                clearInterval(sensorInterval);
-                sensorInterval = null;
-            }
-        }
-
-        function updateModalForm(sensors) {
-            suhuGabahInput.value = sensors && isNumeric(sensors.avg_grain_temperature) ? sensors.avg_grain_temperature
-                .toFixed(2) : '';
-            suhuRuanganInput.value = sensors && isNumeric(sensors.avg_room_temperature) ? sensors.avg_room_temperature
-                .toFixed(2) : '';
-            kadarAirGabahInput.value = sensors && isNumeric(sensors.avg_grain_moisture) ? sensors.avg_grain_moisture
-                .toFixed(2) : '';
-        }
-
-        function startSensorMonitoring(processId) {
-            if (sensorInterval) {
-                clearInterval(sensorInterval);
-            }
-            sensorInterval = setInterval(() => {
-                fetchSensorData(processId)
-                    .then(data => {
-                        const sensors = data.sensors || {};
-                        const dryingProcess = data.drying_process;
-                        if (dryingProcess && dryingProcess.status === 'ongoing' && sensors
-                            .target_moisture_achieved) {
-                            completeProcess(dryingProcess.process_id);
-                            clearInterval(sensorInterval);
-                            sensorInterval = null;
-                        }
-                    })
-                    .catch(err => console.error('Polling error:', err));
-            }, POLLING_INTERVAL);
-        }
-
-        function showConfirmStopModal(processId) {
-            const confirmButton = document.getElementById('confirmStopButton');
-            confirmButton.onclick = () => completeProcess(processId);
-            const modal = new bootstrap.Modal(document.getElementById('confirmStopModal'));
-            modal.show();
-        }
-
-        async function completeProcess(processId) {
-            const confirmModalElement = document.getElementById('confirmStopModal');
-            const confirmModal = bootstrap.Modal.getInstance(confirmModalElement);
-
-            const data = await fetchSensorData(processId);
-            const sensors = data.sensors || {};
-
-            try {
-                const response = await fetch(`${baseUrl}/operator/drying-process/${processId}/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        timestamp_selesai: new Date().toISOString(),
-                        kadar_air_akhir: parseFloat(sensors.avg_grain_moisture) || 0,
-                        suhu_gabah_akhir: parseFloat(sensors.avg_grain_temperature) || 0,
-                        suhu_ruangan_akhir: parseFloat(sensors.avg_room_temperature) || 0
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Gagal menyelesaikan proses: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                if (result.success) {
-                    if (confirmModal) {
-                        confirmModal.hide();
-                        confirmModalElement.classList.remove('show');
-                        confirmModalElement.style.display = 'none';
-                        document.querySelector('.modal-backdrop')?.remove();
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                    }
-
-                    showNotification('Proses pengeringan selesai!', 'bg-green-500', true);
-                    resetUI();
-                } else {
-                    showNotification('Gagal menyelesaikan proses: ' + (result.error || 'Kesalahan server.'),
-                        'bg-red-500');
-                }
-            } catch (err) {
-                console.error('Error completing process:', err);
-                showNotification(`Gagal menyelesaikan proses: ${err.message}`, 'bg-red-500');
-            }
-        }
-
-        function showNotification(msg, bgClass, reload = false) {
-            const notification = document.getElementById('notification');
-            const notificationMessage = document.getElementById('notificationMessage');
-            const modalElement = document.getElementById('tambahDataModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            const confirmModalElement = document.getElementById('confirmStopModal');
-            const confirmModal = bootstrap.Modal.getInstance(confirmModalElement);
-
-            if (modal) {
-                modal.hide();
-                modalElement.classList.remove('show');
-                modalElement.style.display = 'none';
-            }
-            if (confirmModal) {
-                confirmModal.hide();
-                confirmModalElement.classList.remove('show');
-                confirmModalElement.style.display = 'none';
-            }
-            document.querySelector('.modal-backdrop')?.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-
-            notificationMessage.innerText = msg;
-            notificationMessage.className = `px-4 py-2 rounded-lg shadow-lg text-white ${bgClass}`;
-            notification.classList.remove('hidden');
-
-            setTimeout(() => {
-                notification.classList.add('hidden');
-                if (reload) {
-                    location.reload();
-                }
-            }, 5000);
-        }
-
-        function handleCardClick(title, currentValue, iconPath) {
-            const card = event.currentTarget;
-            // card.classList.add('scale-105', 'shadow-lg', 'transition-all', 'duration-200');
-            // setTimeout(() => {
-            //     card.classList.remove('scale-105', 'shadow-lg', 'transition-all', 'duration-200');
-            // }, 300);
-
-            // Set modal title and icon
-            document.getElementById('modal-title').textContent = `Detail ${title}`;
-            document.getElementById('modal-icon-path').setAttribute('d', iconPath);
-
-            // Clear previous modal content
-            const modalContent = document.getElementById('modal-device-data');
-            modalContent.innerHTML = '';
-
-            // Map title to data key and unit
-            const dataKeyMap = {
-                'Kadar Air Gabah': {
-                    key: 'kadar_air_gabah',
-                    unit: '%',
-                    avgKey: 'avg_grain_moisture'
-                },
-                'Suhu Gabah': {
-                    key: 'suhu_gabah',
-                    unit: '°C',
-                    avgKey: 'avg_grain_temperature'
-                },
-                'Suhu Ruangan': {
-                    key: 'suhu_ruangan',
-                    unit: '°C',
-                    avgKey: 'avg_room_temperature'
-                },
-                'Estimasi Waktu Pengeringan': {
-                    key: 'durasi_rekomendasi',
-                    unit: 'Menit',
-                    avgKey: null
-                }
-            };
-
-            const {
-                key,
-                unit,
-                avgKey
-            } = dataKeyMap[title] || {
-                key: '',
-                unit: '',
-                avgKey: null
-            };
-
-            if (title === 'Kadar Air Gabah' || title === 'Suhu Gabah') {
-                // Initial Data Section
-                const initialHeader = document.createElement('p');
-                initialHeader.className = 'text-[#1E3A8A] text-lg font-bold mb-2';
-                initialHeader.textContent = `${title} Awal`;
-                modalContent.appendChild(initialHeader);
-
-                const initialAvg = document.createElement('p');
-                initialAvg.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
-                initialAvg.textContent = `Rata-rata: ${initialData[key].toFixed(2)}${unit}`;
-                modalContent.appendChild(initialAvg);
-
-                Object.entries(sensorDataByDevice).forEach(([deviceName, data]) => {
-                    const deviceP = document.createElement('p');
-                    deviceP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
-                    deviceP.textContent = `${deviceName}: ${data[key].toFixed(2)}${unit}`;
-                    modalContent.appendChild(deviceP);
-                });
-
-                // Separator
-                const hr = document.createElement('hr');
-                hr.className = 'my-3 border-[#A3BFFA]/60';
-                modalContent.appendChild(hr);
-
-                // Current Data Section
-                const currentHeader = document.createElement('p');
-                currentHeader.className = 'text-[#1E3A8A] text-lg font-bold mb-2';
-                currentHeader.textContent = `${title} Saat Ini`;
-                modalContent.appendChild(currentHeader);
-
-                const currentAvg = document.createElement('p');
-                currentAvg.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
-                currentAvg.textContent =
-                    `Rata-rata: ${parseFloat(currentValue) ? parseFloat(currentValue).toFixed(2) : '0.00'}${unit}`;
-                modalContent.appendChild(currentAvg);
-
-                Object.entries(sensorDataByDevice).forEach(([deviceName, data]) => {
-                    const deviceP = document.createElement('p');
-                    deviceP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
-                    deviceP.textContent = `${deviceName}: ${data[key].toFixed(2)}${unit}`;
-                    modalContent.appendChild(deviceP);
-                });
-
-                if (Object.keys(sensorDataByDevice).length === 0) {
-                    const noDataP = document.createElement('p');
-                    noDataP.className = 'text-[#1E3A8A]/80 text-base mb-1 ml-2';
-                    noDataP.textContent = 'Tidak ada data sensor saat ini.';
-                    modalContent.appendChild(noDataP);
-                }
-            } else if (title === 'Suhu Ruangan') {
-                const initialP = document.createElement('p');
-                initialP.className = 'text-[#1E3A8A]/80 text-base mb-2';
-                initialP.textContent = `${title} Awal: ${initialData[key].toFixed(2)}${unit}`;
-                modalContent.appendChild(initialP);
-
-                const currentP = document.createElement('p');
-                currentP.className = 'text-[#1E3A8A]/80 text-base mb-2';
-                currentP.textContent =
-                    `${title} Saat Ini: ${parseFloat(currentValue) ? parseFloat(currentValue).toFixed(2) : '0.00'}${unit}`;
-                modalContent.appendChild(currentP);
-            } else if (title === 'Estimasi Waktu Pengeringan') {
-                const durationP = document.createElement('p');
-                durationP.className = 'text-[#1E3A8A]/80 text-base mb-2';
-                durationP.textContent = `Estimasi Durasi: ${initialData.durasi_rekomendasi.toFixed(2)} Menit`;
-                modalContent.appendChild(durationP);
-
-                const targetP = document.createElement('p');
-                targetP.className = 'text-[#1E3A8A]/80 text-base mb-2';
-                targetP.textContent = `Target Kadar Air: ${initialData.kadar_air_target.toFixed(2)}%`;
-                modalContent.appendChild(targetP);
-            }
-
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-        }
-
-        function isNumeric(value) {
-            return !isNaN(parseFloat(value)) && isFinite(value);
-        }
-
-        // Initialize UI based on ongoingProcess
-        document.addEventListener('DOMContentLoaded', function() {
-            statusText = document.getElementById('statusText');
-            kadarAirText = document.getElementById('kadarAirText');
-            suhuGabahText = document.getElementById('suhuGabahText');
-            suhuRuanganText = document.getElementById('suhuRuanganText');
-            durasiText = document.getElementById('durasiText');
-            toggleButton = document.getElementById('toggleButton');
-            suhuGabahInput = document.getElementById('suhu_gabah');
-            suhuRuanganInput = document.getElementById('suhu_ruangan');
-            kadarAirGabahInput = document.getElementById('kadar_air_gabah');
-
-            // Initial fetch with faster polling until data is received
-            let initialPollInterval = setInterval(() => {
-                fetchSensorData().then(data => {
-                    if (data.sensors && isNumeric(data.sensors.avg_grain_moisture)) {
-                        clearInterval(
-                            initialPollInterval); // Stop polling once valid data is received
-                    }
-                });
-            }, INITIAL_POLLING_INTERVAL);
-
-            document.getElementById('tambahDataModal').addEventListener('show.bs.modal', function() {
-                fetchSensorData();
-            });
-        });
-
-        // Submit predict form
-        document.getElementById('predictForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const modalElement = document.getElementById('tambahDataModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-
-            const suhuGabah = parseFloat(suhuGabahInput.value);
-            const suhuRuangan = parseFloat(suhuRuanganInput.value);
-            const kadarAirGabah = parseFloat(kadarAirGabahInput.value);
-
-            if (!isNumeric(suhuGabah) || !isNumeric(suhuRuangan) || !isNumeric(kadarAirGabah)) {
-                showNotification('Data sensor tidak lengkap atau tidak valid.', 'bg-red-500');
-                return;
-            }
-
-            const form = e.target;
-            if (!form.jenis_gabah.value) {
-                showNotification('Jenis gabah harus dipilih.', 'bg-red-500');
-                return;
-            }
-            const beratGabah = parseFloat(form.berat_gabah.value);
-            if (!isNumeric(beratGabah) || beratGabah <= 0) {
-                showNotification('Berat gabah harus lebih besar dari 0.', 'bg-red-500');
-                return;
-            }
-            const kadarAirTarget = parseFloat(form.kadar_air_target.value);
-            if (!isNumeric(kadarAirTarget) || kadarAirTarget < 0 || kadarAirTarget > 100) {
-                showNotification('Target kadar air harus di antara 0 dan 100.', 'bg-red-500');
-                return;
-            }
-
-            if (!sanctumToken) {
-                showNotification('Anda harus login untuk menyimpan data prediksi.', 'bg-red-500');
-                window.location.href = '{{ route('login') }}';
-                return;
-            }
-
-            try {
-                await fetch('/sanctum/csrf-cookie', {
-                    method: 'GET'
-                });
-
-                const data = {
-                    kadar_air_gabah: kadarAirGabah,
-                    suhu_gabah: suhuGabah,
-                    suhu_ruangan: suhuRuangan,
-                    berat_gabah: beratGabah,
-                    kadar_air_target: kadarAirTarget
-                };
-
-                const timestampMulai = new Date().toISOString();
-                const predictResponse = await fetch("http://192.168.43.142:5000/predict", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (!predictResponse.ok) {
-                    throw new Error(`Gagal mendapatkan prediksi: ${predictResponse.statusText}`);
-                }
-
-                const predictData = await predictResponse.json();
-                const durasiMenit = parseFloat(predictData.durasi_rekomendasi);
-                const timestampSelesai = new Date(new Date(timestampMulai).getTime() + durasiMenit * 60 * 1000)
-                    .toISOString();
-                const storeData = {
-                    nama_jenis: form.jenis_gabah.value,
-                    suhu_gabah: suhuGabah,
-                    suhu_ruangan: suhuRuangan,
-                    kadar_air_gabah: kadarAirGabah,
-                    kadar_air_target: kadarAirTarget,
-                    berat_gabah: beratGabah,
-                    durasi_rekomendasi: durasiMenit,
-                    timestamp_selesai: timestampSelesai
-                };
-
-                // Store initial values
+                // Update initialData
                 initialData = {
                     kadar_air_gabah: kadarAirGabah,
                     suhu_gabah: suhuGabah,
                     suhu_ruangan: suhuRuangan,
+                    suhu_pembakaran: suhuPembakaran,
                     durasi_rekomendasi: durasiMenit,
                     kadar_air_target: kadarAirTarget
                 };
 
-                const storeResponse = await fetch(`${baseUrl}/operator/prediksi/store`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify(storeData)
-                });
-
-                if (!storeResponse.ok) {
-                    if (storeResponse.status === 401) {
-                        showNotification('Sesi Anda telah berakhir. Silakan login kembali.', 'bg-red-500');
-                        window.location.href = '{{ route('login') }}';
-                        throw new Error('Unauthorized');
-                    }
-                    const err = await storeResponse.json();
-                    throw new Error(err.error || `Gagal menyimpan: ${storeResponse.statusText}`);
+                // Tutup modal
+                if (modal) {
+                    modal.hide();
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    document.querySelector('.modal-backdrop')?.remove();
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
                 }
 
-                const storeResult = await storeResponse.json();
-                if (storeResult.success) {
-                    const processId = storeResult.data.process_id;
-                    toggleButton.onclick = () => showConfirmStopModal(processId);
+                // Fetch sensor data untuk sinkronisasi
+                await fetchSensorData(processId);
 
-                    // Update UI dengan data dari form
-                    statusText.innerText = 'Aktif';
-                    toggleButton.innerText = 'STOP';
-                    toggleButton.removeAttribute('data-bs-toggle');
-                    toggleButton.removeAttribute('data-bs-target');
-                    toggleButton.onclick = () => showConfirmStopModal(processId);
-                    kadarAirText.innerText = `${kadarAirGabah.toFixed(2)}%`;
-                    suhuGabahText.innerText = `${suhuGabah.toFixed(2)}°C`;
-                    suhuRuanganText.innerText = `${suhuRuangan.toFixed(2)}°C`;
-                    durasiText.innerText = `${durasiMenit.toFixed(2)} Menit`;
-
-                    // Tutup modal
-                    if (modal) {
-                        modal.hide();
-                        modalElement.classList.remove('show');
-                        modalElement.style.display = 'none';
-                        document.querySelector('.modal-backdrop')?.remove();
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                    }
-
-                    // Fetch sensor data untuk sinkronisasi
-                    await fetchSensorData(processId);
-
-                    showNotification('Prediksi berhasil! Proses pengeringan dimulai.', 'bg-green-500', true);
-                } else {
-                    showNotification('Gagal menyimpan proses: ' + (storeResult.error || 'Kesalahan server.'),
-                        'bg-red-500');
-                }
-            } catch (err) {
-                if (err.message !== 'Unauthorized') {
-                    showNotification(`Terjadi kesalahan: ${err.message}`, 'bg-red-500');
-                }
+                showNotification('Prediksi berhasil! Proses pengeringan dimulai.', 'bg-green-500', true);
+            } else {
+                showNotification('Gagal menyimpan proses: ' + (storeResult.error || 'Kesalahan server.'), 'bg-red-500');
             }
-        });
-    </script>
+        } catch (err) {
+            console.error('Error during prediction:', err);
+            let errorMessage = err.message;
+            if (err.message.includes('Failed to fetch')) {
+                errorMessage = 'Tidak dapat terhubung ke server ML. Pastikan server ML berjalan di http://192.168.43.142:5000 dan periksa koneksi jaringan.';
+            }
+            showNotification(`Gagal Prediksi: ${errorMessage}`, 'bg-red-500');
+        }
+    });
+</script>
 @endsection

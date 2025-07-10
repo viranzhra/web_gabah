@@ -77,6 +77,20 @@ Route::get('/logout', function () {
 Route::get('/sample', function () {
     return view('sample-page');
 });
+Route::get('/riwayat', function () {
+    return view('administrator.riwayat.index');
+});
+use App\Http\Controllers\RiwayatController;
+
+// Route::get('/riwayat/data', [RiwayatController::class, 'data'])->name('riwayat.data');
+
+Route::get('/riwayat/data', [RiwayatController::class, 'data'])->name('riwayat.data');
+Route::get('/riwayat/detail/{id}', [RiwayatController::class, 'detail'])->name('riwayat.detail');
+Route::get('/riwayat', fn() => view('administrator.riwayat.index'))->name('riwayat.index');
+
+Route::get('/grafik', function () {
+    return view('administrator.coba_grafik');
+});
 
 Route::get('/nav', function () {
     return view('layout/nav');
