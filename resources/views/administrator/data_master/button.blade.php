@@ -32,7 +32,7 @@
     <a href="{{ url('/jenis_gabah') }}" class="btn btn-link {{ request()->is('jenis_gabah') ? 'active' : '' }}"
         title="Lihat dan kelola jenis gabah">Jenis Gabah</a>
     <a href="{{ url('/data_device') }}" class="btn btn-link {{ request()->is('data_device') ? 'active' : '' }}"
-        title="Lihat data sensor">Perangkat IoT</a>
-    <a href="{{ url('/roles') }}" class="btn btn-link {{ request()->is('roles') ? 'active' : '' }}"
-        title="Kelola pengaturan role pengguna">Pengelolaan Pengguna</a>
+        title="Lihat data perangkat">Perangkat IoT</a>
+    <a href="{{ url('/role_manage') }}" class="btn btn-link {{ request()->is('role_manage') ? 'active' : '' }}"
+        title="Kelola data pengguna">Pengelolaan Pengguna</a>
 </div>

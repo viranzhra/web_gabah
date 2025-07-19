@@ -5,84 +5,157 @@
         .table-responsive {
             overflow-x: auto;
         }
+
         /* Memastikan semua judul kolom rata tengah */
         #riwayatTable thead th {
             text-align: center;
             vertical-align: middle;
-            background-color: #f8f9fa;
+            /* background-color: #f8f9fa; */
             font-weight: 600;
             color: #333;
         }
+
         /* Styling untuk baris tabel */
         #riwayatTable tbody tr {
             cursor: pointer;
             transition: background-color 0.2s;
         }
+
         #riwayatTable tbody tr:hover {
-            background-color: #e9f7ff;
+            /* background-color: #e9f7ff; */
         }
+
         .filter-group {
-            margin-bottom: 20px;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+            /* Menyelaraskan elemen ke bawah */
         }
-        .filter-group label {
-            margin-bottom: 5px;
+
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+            /* Minimal lebar untuk mencegah input terlalu kecil */
+        }
+
+        .filter-item label {
+            display: block;
+            font-size: 0.875rem;
             font-weight: 500;
-            color: #4F4F4F;
+            color: #374151;
+            margin-bottom: 0.25rem;
         }
-        .filter-group input {
-            border-radius: 8px;
-            border: 1px solid #DAD9D9;
-            padding: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: border-color 0.2s;
+
+        .filter-item input.form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            height: 2.5rem;
+            /* Tinggi sama dengan tombol */
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: white;
         }
-        .filter-group input:focus {
-            border-color: #1E3B8A;
+
+        .filter-item input.form-control:focus {
             outline: none;
-            box-shadow: 0 0 8px rgba(30, 59, 138, 0.3);
+            border-color: #1e3a8a;
+            /* Warna biru sesuai tema Anda */
+            box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
         }
-        .card {
+
+        .filter-item.filter-button {
+            flex: 0 0 auto;
+            /* Tombol tidak mengambil ruang flex penuh */
+        }
+
+        .filter-item button.btn-reset {
+            padding: 0.5rem 1rem;
+            background-color: #e5e7eb;
+            color: #374151;
             border: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
+            border-radius: 0.375rem;
+            height: 2.5rem;
+            /* Tinggi sama dengan input */
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            min-width: 30px;
+            /* Lebar minimal untuk konsistensi */
         }
-        .card-body {
-            padding: 20px;
+
+        .filter-item button.btn-reset:hover {
+            background-color: #d1d5db;
         }
-        .filter-group .btn-reset {
-            border-radius: 8px;
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 16px;
+
+        /* Responsivitas */
+        @media (max-width: 768px) {
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-item {
+                min-width: 100%;
+            }
+
+            .filter-item.filter-button {
+                display: flex;
+                justify-content: flex-end;
+                /* Tombol tetap di kanan pada layar kecil */
+            }
+
+            .filter-item button.btn-reset {
+                width: 100%;
+                /* Tombol penuh pada layar kecil */
+            }
+        }
+
+        .btn-number {
+            background-color: #bfdbfe;
+            /* bg-blue-100 */
+            color: #1e3a8a;
+            /* text-blue-900 */
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 0.375rem;
             border: none;
-            align-self: flex-end;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-size: 12px;
         }
-        .filter-group .btn-reset:hover {
-            background-color: #c82333;
+
+        .btn-number:hover {
+            background-color: #A0B8FF;
+            /* Warna lebih gelap saat hover */
         }
     </style>
 
     <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Riwayat Kegiatan Pengeringan</h4>
+    <div class="filter-group">
+        <div class="filter-item">
+            <label for="filter_datetime_mulai">Waktu Mulai</label>
+            <input type="datetime-local" id="filter_datetime_mulai" class="form-control">
+        </div>
+        <div class="filter-item">
+            <label for="filter_datetime_berakhir">Waktu Berakhir</label>
+            <input type="datetime-local" id="filter_datetime_berakhir" class="form-control">
+        </div>
+        <div class="filter-item filter-button">
+            <label>&nbsp;</label> <!-- Placeholder untuk menjaga keselarasan -->
+            <button id="reset_filter_btn"
+                class="btn btn-reset w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-md h-10 hover:bg-gray-300 transition flex items-center justify-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
     <div class="card mt-4">
         <div class="card-body">
-            <div class="filter-group">
-                <div>
-                    <label for="filter_datetime_mulai">Tanggal & Jam Mulai</label>
-                    <input type="datetime-local" id="filter_datetime_mulai" class="form-control">
-                </div>
-                <div>
-                    <label for="filter_datetime_berakhir">Tanggal & Jam Berakhir</label>
-                    <input type="datetime-local" id="filter_datetime_berakhir" class="form-control">
-                </div>
-                <div>
-                    <label>&nbsp;</label>
-                    <button id="reset_filter_btn" class="btn btn-reset">Reset Filter</button>
-                </div>
-            </div>
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow-x: auto;">
                 <table id="riwayatTable" class="table table-bordered table-striped">
                     <thead class="text-center">
                         <tr>
@@ -123,7 +196,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: '{{ route("riwayat.data") }}',
+                        url: '{{ route('riwayat.data') }}',
                         type: 'GET',
                         data: function(d) {
                             d.datetime_mulai = $('#filter_datetime_mulai').val();
@@ -137,11 +210,10 @@
                                 'Terjadi kesalahan.'));
                         }
                     },
-                    columns: [
-                        {
+                    columns: [{
                             data: null,
                             render: function(data, type, row, meta) {
-                                return meta.row + meta.settings._iDisplayStart + 1;
+                                return `<button class="btn-number bg-blue-100 text-blue-900 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition ease-in-out duration-200" data-id="${row.id}" aria-label="Lihat detail untuk nomor ${meta.row + meta.settings._iDisplayStart + 1}">${meta.row + meta.settings._iDisplayStart + 1}</button>`;
                             },
                             className: 'text-center'
                         },
@@ -188,6 +260,26 @@
                     ]
                 });
 
+                // Event untuk klik tombol nomor
+                $('#riwayatTable').on('click', '.btn-number', function() {
+                    var id = $(this).data('id');
+                    if (id) {
+                        window.location.href = '{{ route('riwayat.detail', ':id') }}'.replace(':id',
+                            id);
+                    }
+                });
+
+                // Event untuk klik baris (opsional, jika masih ingin baris dapat diklik)
+                $('#riwayatTable tbody').on('click', 'tr', function(e) {
+                    if ($(e.target).is('.btn-number'))
+                        return; // Hindari double trigger jika klik tombol
+                    var data = table.row(this).data();
+                    if (data && data.id) {
+                        window.location.href = '{{ route('riwayat.detail', ':id') }}'.replace(':id',
+                            data.id);
+                    }
+                });
+
                 // Event untuk otomatis filter saat Tanggal & Jam Mulai diubah
                 $('#filter_datetime_mulai').on('change', function() {
                     table.ajax.reload();
@@ -196,14 +288,6 @@
                 // Event untuk otomatis filter saat Tanggal & Jam Berakhir diubah
                 $('#filter_datetime_berakhir').on('change', function() {
                     table.ajax.reload();
-                });
-
-                // Event untuk klik baris
-                $('#riwayatTable tbody').on('click', 'tr', function() {
-                    var data = table.row(this).data();
-                    if (data && data.id) {
-                        window.location.href = '{{ route("riwayat.detail", ":id") }}'.replace(':id', data.id);
-                    }
                 });
 
                 // Event untuk reset filter
@@ -215,5 +299,4 @@
             });
         })(jQuery.noConflict(true));
     </script>
-
 @endsection

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DataSensorController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\JenisGabahController;
-use App\Http\Controllers\ValidasiDatasetContoller;
+use App\Http\Controllers\ValidasiPengeringanContoller;
 use App\Http\Controllers\PrediksiController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RoleController;
@@ -33,13 +33,18 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
             return view('administrator.dashboard');
         })->name('admin.dashboard');
 
-        Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
-        Route::post('/roles/store', [RoleController::class, 'store'])->name('roles.store');
-        Route::get('/roles/{id}/edit', [RoleController::class, 'edit']);
-        Route::put('/roles/{id}', [RoleController::class, 'update']);
-        Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
-        Route::get('/datatable/roles', [RoleController::class, 'getRolesData']);
-        Route::get('/datatable/users', [RoleController::class, 'getUsersData']);
+Route::get('/roles', [RoleController::class, 'getRoles']);
+Route::post('/roles', [RoleController::class, 'storeRole']);
+Route::get('/roles/{id}', [RoleController::class, 'showRole']);
+Route::put('/roles/{id}', [RoleController::class, 'updateRole']);
+Route::delete('/roles/{id}', [RoleController::class, 'destroyRole']);
+Route::get('/users', [RoleController::class, 'getUsers']);
+Route::post('/users', [RoleController::class, 'storeUser']);
+Route::get('/users/{id}', [RoleController::class, 'showUser']);
+Route::put('/users/{id}', [RoleController::class, 'updateUser']);
+Route::delete('/users/{id}', [RoleController::class, 'destroyUser']);
+Route::get('/role_manage', [RoleController::class, 'index']);
+Route::get('/permissions', [RoleController::class, 'getPermissions']);
 
         Route::get('/data_sensor', [DataSensorController::class, 'index'])->name('data_sensor.index');
         Route::get('/data_device', [DeviceController::class, 'index'])->name('data_device.index');
@@ -49,7 +54,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
         Route::get('/prediksi/create', [PrediksiController::class, 'create'])->name('prediksi.create');
 
         Route::get('/jenis_gabah', [JenisGabahController::class, 'index'])->name('jenis_gabah.index');
-        Route::get('/validasi', [ValidasiDatasetContoller::class, 'index'])->name('validasi.index');
+        Route::get('/validasi', [ValidasiPengeringanContoller::class, 'index'])->name('validasi.index');
     });
 
     // Rute logout
@@ -86,6 +91,7 @@ use App\Http\Controllers\RiwayatController;
 
 Route::get('/riwayat/data', [RiwayatController::class, 'data'])->name('riwayat.data');
 Route::get('/riwayat/detail/{id}', [RiwayatController::class, 'detail'])->name('riwayat.detail');
+Route::get('/riwayat/{id}/sensor', [RiwayatController::class, 'sensor'])->name('riwayat.sensor');
 Route::get('/riwayat', fn() => view('administrator.riwayat.index'))->name('riwayat.index');
 
 Route::get('/grafik', function () {
