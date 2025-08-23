@@ -10,50 +10,50 @@ use Yajra\DataTables\DataTables;
 class PrediksiController extends Controller
 {
     public function index(Request $request)
-    {
-        $baseUrl = config('services.api.base_url'); // Ambil base URL dari config/services.php
+{
+    $baseUrl = config('services.api.base_url');
+    $token   = session('sanctum_token');
+    $userId  = auth()->id();
 
-        if ($request->ajax()) {
-            $response = Http::withToken(session('sanctum_token'))
-                ->get(url("{$baseUrl}/prediksi"));
+    if ($request->ajax()) {
+        // Pastikan hanya data milik user login yang diambil
+        $response = Http::withToken($token)
+            ->get("{$baseUrl}/prediksi", [
+                'user_id' => $userId, // opsional, kalau endpoint dukung
+                'me'      => 1        // pola umum: parameter 'me' untuk paksa scope ke user token
+            ]);
 
-            if (!$response->successful()) {
-                return response()->json(['message' => 'Gagal mengambil data prediksi'], 500);
-            }
-
-            $data = $response->json()['data'];
-
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('nama_jenis', fn($row) => $row['grain_type']['nama_jenis'] ?? '-')
-                ->addColumn('timestamp_mulai', fn($row) => isset($row['timestamp_mulai'])
-                    ? date('d-m-Y H:i', strtotime($row['timestamp_mulai']))
-                    : '-')
-                ->addColumn('aksi', fn($row) => '<button class="btn btn-sm btn-primary btn-detail" data-id="' . ($row['id'] ?? '') . '">Detail</button>')
-                ->rawColumns(['aksi'])
-                ->make(true);
+        if (!$response->successful()) {
+            return response()->json(['message' => 'Gagal mengambil data prediksi'], 500);
         }
 
-        // Ambil jenis gabah dari API untuk form modal
-        $grainTypes = [];
-        $grainTypeResponse = Http::withToken(session('sanctum_token'))
-            ->get(url("{$baseUrl}/jenis-gabah"));
+        $data = $response->json('data', []);
 
-        if ($grainTypeResponse->successful()) {
-            $grainTypes = $grainTypeResponse->json()['data'] ?? [];
-        }
-
-        // Ambil data sensor terbaru dari API (pakai token juga)
-        $sensorResponse = Http::withToken(session('sanctum_token'))
-            ->get(url("{$baseUrl}/sensor-data"));
-
-        $sensorData = [];
-        if ($sensorResponse->successful()) {
-            $sensorData = $sensorResponse->json('data', []);
-        }
-
-        return view('administrator.prediksi.index', compact('grainTypes', 'sensorData'));
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('nama_jenis', fn($row) => $row['grain_type']['nama_jenis'] ?? '-')
+            ->addColumn('timestamp_mulai', fn($row) => isset($row['timestamp_mulai'])
+                ? date('d-m-Y H:i', strtotime($row['timestamp_mulai'])) : '-')
+            ->addColumn('aksi', fn($row) => '<button class="btn btn-sm btn-primary btn-detail" data-id="' . ($row['process_id'] ?? $row['id'] ?? '') . '">Detail</button>')
+            ->rawColumns(['aksi'])
+            ->make(true);
     }
+
+    // === Jenis gabah ===
+    $grainTypes = [];
+    $grainTypeResponse = Http::withToken($token)->get("{$baseUrl}/jenis-gabah");
+    if ($grainTypeResponse->successful()) {
+        $grainTypes = $grainTypeResponse->json('data', []);
+    }
+
+    // === Sensor realtime per user yang login ===
+    $sensorResponse = Http::withToken($token)->get("{$baseUrl}/get_sensor/realtime", [
+        'user_id' => $userId // banyak endpoint kamu memang butuh ini
+    ]);
+    $sensorData = $sensorResponse->successful() ? $sensorResponse->json('data', []) : [];
+
+    return view('administrator.prediksi.index', compact('grainTypes', 'sensorData'));
+}
 
     public function store(Request $request)
     {

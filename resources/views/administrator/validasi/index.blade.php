@@ -188,7 +188,7 @@
                             <th rowspan="2" class="text-center">Durasi Terlaksana IoT (Menit)</th>
                             <th colspan="2" class="text-center">Waktu Pengeringan Berakhir</th>
                             <th rowspan="2" class="text-center">Validasi Durasi Aktual (Menit)</th>
-                            <th rowspan="2" class="text-center" style="width: 15%;">Aksi</th>
+                            {{-- <th rowspan="2" class="text-center" style="width: 15%;">Aksi</th> --}}
                         </tr>
                         <tr>
                             <th class="text-center">Tanggal</th>
@@ -370,21 +370,21 @@
                         name: 'durasi_validasi',
                         defaultContent: '-'
                     },
-                    {
-                        data: null,
-                        name: 'aksi',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            return `
-                            <button class="btn btn-sm" style="border: none;" onclick="editData('${row.id}')">
-                                <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
-                            </button>
-                            <button class="btn btn-sm" style="border: none;" onclick="deleteData('${row.id}')">
-                                <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
-                            </button>`;
-                        }
-                    }
+                    // {
+                    //     data: null,
+                    //     name: 'aksi',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     render: function(data, type, row) {
+                    //         return `
+                    //         <button class="btn btn-sm" style="border: none;" onclick="editData('${row.id}')">
+                    //             <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
+                    //         </button>
+                    //         <button class="btn btn-sm" style="border: none;" onclick="deleteData('${row.id}')">
+                    //             <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
+                    //         </button>`;
+                    //     }
+                    // }
                 ]
             });
 

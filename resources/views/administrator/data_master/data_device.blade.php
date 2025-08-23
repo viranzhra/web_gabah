@@ -54,8 +54,6 @@
         }
     </style>
 
-    {{-- <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Master</h4> --}}
-
     @include('administrator.data_master.button')
 
     <div id="notification" class="alert position-fixed top-0 end-0 m-4" style="z-index: 9999;">
@@ -73,7 +71,7 @@
                         <tr>
                             <th class="text-center">No</th>
                             <th class="text-center">Nama Perangkat</th>
-                            <th class="text-center">Deskripsi</th>
+                            <th class="text-center">Address</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -89,8 +87,8 @@
                 <div class="modal-header justify-content-center position-relative">
                     <h5 class="modal-title text-center w-100" id="editDataModalLabel"
                         style="margin-top: 15px; margin-bottom: 5px;">Form Edit Data</h5>
-                    <button type="button" class="btn-close position-absolute end-0 top-0 mt-3 me-3"
-                        data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 mt-3 me-3" data-bs-dismiss="modal"
+                        aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body" style="padding: 0 27px 27px 27px;">
                     <form id="editForm" method="POST">
@@ -102,12 +100,6 @@
                                 style="color: #4F4F4F; font-weight: 400">Nama Perangkat</label>
                             <input type="text" name="device_name" id="edit_nama_perangkat"
                                 class="form-control custom-input" placeholder="Masukkan nama perangkat" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_deskripsi" class="form-label"
-                                style="color: #4F4F4F; font-weight: 400">Deskripsi</label>
-                            <input type="text" name="deskripsi" id="edit_deskripsi" class="form-control custom-input"
-                                placeholder="Masukkan deskripsi perangkat" required>
                         </div>
                         <div style="margin-top: 30px;">
                             <button style="height: 43px; font-size: 16px; font-weight: 700; letter-spacing: 2px;"
@@ -174,8 +166,7 @@
                             showNotification('error', 'Gagal!', errorMessage);
                         }
                     },
-                    columns: [
-                        {
+                    columns: [{
                             data: null,
                             render: function(data, type, row, meta) {
                                 return meta.row + meta.settings._iDisplayStart + 1;
@@ -187,13 +178,13 @@
                             defaultContent: '-'
                         },
                         {
-                            data: 'deskripsi',
+                            data: 'address',
                             defaultContent: '-'
                         },
                         {
                             data: 'status',
                             render: function(data) {
-                                return data === 'aktif' ? 'Aktif' : 'Tidak Aktif';
+                                return data ? 'Aktif' : 'Tidak Aktif';
                             },
                             defaultContent: '-'
                         },
@@ -228,8 +219,8 @@
                             if (res.status && res.data) {
                                 $('#edit_device_id').val(res.data.device_id);
                                 $('#edit_nama_perangkat').val(res.data.device_name);
-                                $('#edit_deskripsi').val(res.data.deskripsi);
-                                var editModal = new bootstrap.Modal(document.getElementById('editDataModal'));
+                                var editModal = new bootstrap.Modal(document.getElementById(
+                                    'editDataModal'));
                                 editModal.show();
                             } else {
                                 showNotification('error', 'Gagal!', 'Data Alat tidak valid.');
@@ -237,13 +228,15 @@
                         },
                         error: function(xhr) {
                             console.error('AJAX Error:', xhr);
-                            let errorMessage = xhr.responseJSON?.message || 'Gagal mengambil Data Alat.';
+                            let errorMessage = xhr.responseJSON?.message ||
+                                'Gagal mengambil Data Alat.';
                             if (xhr.status === 404) {
                                 errorMessage = 'Perangkat tidak ditemukan.';
                             } else if (xhr.status === 401) {
                                 errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
                             } else if (xhr.status === 405) {
-                                errorMessage = 'Metode tidak diizinkan. Silakan periksa konfigurasi server.';
+                                errorMessage =
+                                    'Metode tidak diizinkan. Silakan periksa konfigurasi server.';
                             }
                             showNotification('error', 'Gagal!', errorMessage);
                         }
@@ -255,7 +248,6 @@
                     let id = $('#edit_device_id').val();
                     let data = {
                         device_name: $('#edit_nama_perangkat').val(),
-                        deskripsi: $('#edit_deskripsi').val(),
                         _token: $('input[name="_token"]').val()
                     };
 
@@ -274,15 +266,19 @@
                                 new bootstrap.Modal(editModalEl);
                             editModal.hide();
                             table.ajax.reload(null, false);
-                            showNotification('success', 'Berhasil!', 'Perangkat berhasil diperbarui.');
+                            showNotification('success', 'Berhasil!',
+                                'Perangkat berhasil diperbarui.');
                         },
                         error: function(xhr) {
                             console.error('AJAX Error:', xhr);
-                            let errorMessage = xhr.responseJSON?.message || 'Gagal memperbarui perangkat.';
+                            let errorMessage = xhr.responseJSON?.message ||
+                                'Gagal memperbarui perangkat.';
                             if (xhr.status === 422) {
-                                errorMessage = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                                errorMessage = Object.values(xhr.responseJSON.errors).flat()
+                                    .join(', ');
                             } else if (xhr.status === 401) {
-                                errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                                errorMessage =
+                                'Sesi telah berakhir. Silakan login kembali.';
                             }
                             showNotification('error', 'Gagal!', errorMessage);
                         }

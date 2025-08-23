@@ -1,312 +1,184 @@
 @extends('layout.app')
 
 @section('content')
-    <style>
-        .detail-card {
-            border: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            background-color: #fff;
-        }
-        .detail-card h4 {
-            color: #1E3B8A;
-            margin-bottom: 20px;
-        }
-        .detail-card .row {
-            margin-bottom: 15px;
-        }
-        .detail-card .label {
-            font-weight: 500;
-            color: #4F4F4F;
-        }
-        .detail-card .value {
-            color: #333;
-        }
-        .btn-back {
-            border-radius: 8px;
-            background-color: #1E3B8A;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-        }
-        .btn-back:hover {
-            background-color: #163075;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-        #sensorTable {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-        }
-        #sensorTable th, #sensorTable td {
-            font-size: 14px;
-            text-align: center;
-            vertical-align: middle;
-            padding: 8px;
-            border: 1px solid #e5e7eb; /* border-gray-200 */
-        }
-        #sensorTable th {
-            color: #1E3B8A;
-            font-weight: 600;
-        }
-        #sensorTable tbody tr:hover {
-            background-color: #f3f4f6; /* bg-gray-50 */
-        }
-        #sensorTable tfoot td {
-            background-color: #f1f5f9; /* bg-gray-100 */
-            font-weight: 600;
-            color: #1E3B8A;
-        }
-        #sensorTable .interval-link {
-            background-color: #bfdbfe;
-            /* bg-blue-100 */
-            color: #1e3a8a;
-            /* text-blue-900 */
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            font-size: 12px;
-        }
-        #sensorTable .interval-link:hover {
-            background-color: #93c5fd;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        .modal-content {
-            border-radius: 8px;
-        }
-        .modal-header {
-            /* background-color: #1E3B8A; */
-            color: white;
-        }
-        .modal-body p {
-            margin: 8px 0;
-            color: #333;
-        }
-        .modal-body strong {
-            color: #1E3B8A;
-        }
-    </style>
-
-    <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Detail Riwayat Kegiatan Pengeringan</h4>
-        <a href="{{ route('riwayat.index') }}" class="btn btn-back mt-3" aria-label="Kembali ke daftar riwayat">Kembali</a>
-
-    <div class="card mt-4">
-        <div class="card-body">
-            <h4>Data Sensor (ID: {{ $data['id'] ?? 'Tidak tersedia' }})</h4>
-            <div class="table-responsive">
-                <table id="sensorTable" class="table table-bordered table-striped" aria-label="Tabel data sensor untuk proses pengeringan ID {{ $data['id'] ?? 'Tidak tersedia' }}">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Interval</th>
-                            <th rowspan="2">Waktu</th>
-                            <th rowspan="2">Suhu Pembakaran</th>
-                            <th colspan="4">Suhu Ruangan</th>
-                            <th colspan="4">Suhu Gabah</th>
-                            <th colspan="4">Kadar Air Gabah</th>
-                        </tr>
-                        <tr>
-                            <th>1</th>
-                            <th>2</th>
-                            <th>3</th>
-                            <th>4</th>
-                            <th>1</th>
-                            <th>2</th>
-                            <th>3</th>
-                            <th>4</th>
-                            <th>1</th>
-                            <th>2</th>
-                            <th>3</th>
-                            <th>4</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data akan diisi oleh DataTables via AJAX -->
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2">Rata-rata Keseluruhan</td>
-                            <td id="avgSuhuPembakaran">-</td>
-                            <td colspan="4" id="avgSuhuRuangan">-</td>
-                            <td colspan="4" id="avgSuhuGabah">-</td>
-                            <td colspan="4" id="avgKadarAirGabah">-</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <a href="{{ route('riwayat.index') }}" class="btn d-flex align-items-center justify-content-center"
+                style="background-color: #1E3B8A; color: white; width: 30px; height: 35px; border-radius: 50px;">
+                <i class="bi bi-arrow-left" style="font-size: 18px;"></i>
+            </a>
+            <h2 class="ms-3" style="font-weight: 600; color: #1E3B8A; margin: 0;">Detail Proses Pengeringan</h2>
         </div>
     </div>
 
-    <!-- Modal untuk menampilkan rata-rata per interval -->
-    <div class="modal fade" id="averageModal" tabindex="-1" aria-labelledby="averageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="averageModalLabel">Rata-rata Sensor Interval</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Rata-rata Suhu Ruangan:</strong> <span id="modalAvgSuhuRuangan">-</span></p>
-                    <p><strong>Rata-rata Suhu Gabah:</strong> <span id="modalAvgSuhuGabah">-</span></p>
-                    <p><strong>Rata-rata Kadar Air Gabah:</strong> <span id="modalAvgKadarAirGabah">-</span></p>
-                </div>
-                <div class="modal-footer">
-                    {{-- <button type="button" class="btn btn-back" data-bs-dismiss="modal">Tutup</button> --}}
-                </div>
-            </div>
-        </div>
+    <div class="mb-3">
+        <span class="fw-semibold" style="color: #1E3B8A; font-size: 18px;">Jenis Gabah:</span>
+        <span style="color: #1E3B8A; font-size: 18px; font-weight: 800; letter-spacing: 1px;" id="jenisGabah"></span>
     </div>
-    <!-- Bootstrap CSS -->
-    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> --}}
 
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 style="font-size: 16px; margin-top: 20px;">Data Sensor</h5>
+        <button id="toggleMoreBtn" class="btn btn-sm btn-outline-primary">Lihat Selengkapnya</button>
+    </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <div id="sensor-data"></div>
+    <div id="extra-intervals" class="d-none"></div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const processId = '{{ $process_id }}';
+    const apiBaseUrl = "{{ config('services.api.base_url') }}";
+    const token = "{{ session('sanctum_token') }}";
 
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    if (!token) {
+        document.getElementById('sensor-data').innerHTML = '<p class="text-danger">Sesi login tidak ditemukan. Silakan <a href="/login">login kembali</a>.</p>';
+        return;
+    }
 
-    <script>
-        $(document).ready(function() {
-            // Check if Bootstrap is loaded
-            if (typeof bootstrap === 'undefined') {
-                console.error('Bootstrap is not loaded.');
-                alert('Gagal memuat Bootstrap. Periksa koneksi jaringan atau CDN.');
-                return;
+    fetch(`${apiBaseUrl}/sensor-detail/${processId}`, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'success') {
+            document.getElementById('sensor-data').innerHTML = '<p class="text-danger">Gagal memuat data sensor.</p>';
+            return;
+        }
+
+        fetch(`${apiBaseUrl}/riwayat-proses?process_id=${processId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(riwayatData => {
+            if (riwayatData.status === 'success' && riwayatData.data.length > 0) {
+                document.getElementById('jenisGabah').textContent = riwayatData.data[0].nama_jenis;
+            }
+        });
+
+        const sensorDataContainer = document.getElementById('sensor-data');
+        const extraIntervalsContainer = document.getElementById('extra-intervals');
+
+        data.data.reverse().forEach((item, index) => {
+            let kadarAirRata = '-';
+            const tombakData = item.sensor_data.tombak;
+            if (tombakData.length > 0) {
+                const validKadarAir = tombakData
+                    .filter(t => t.kadar_air_gabah !== '-' && !isNaN(t.kadar_air_gabah))
+                    .map(t => parseFloat(t.kadar_air_gabah));
+                kadarAirRata = validKadarAir.length > 0
+                    ? (validKadarAir.reduce((a, b) => a + b, 0) / validKadarAir.length).toFixed(2) + ' %'
+                    : '-';
             }
 
-            var table = $('#sensorTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('riwayat.sensor', $data['id']) }}',
-                    type: 'GET',
-                    dataSrc: function(json) {
-                        console.log('API Response:', json); // Debugging
-                        if (!json || !json.data) {
-                            console.error('Invalid or empty JSON response');
-                            return [];
-                        }
-                        return json.data;
-                    },
-                    error: function(xhr) {
-                        console.error('AJAX Error:', xhr.responseText);
-                        alert('Terjadi kesalahan saat memuat data sensor: ' + (xhr.status === 500 ?
-                            'Kesalahan server. Silakan coba lagi.' :
-                            'Terjadi kesalahan.'));
-                    }
-                },
-                columns: [
-                    {
-                        data: 'interval',
-                        defaultContent: '-',
-                        render: function(data, type, row) {
-                            if (type === 'display') {
-                                return '<a href="#" class="interval-link" ' +
-                                       'data-interval="' + (data || '-') + '" ' +
-                                       'data-avg-suhu-ruangan="' + (row.avg_suhu_ruangan || '-') + '" ' +
-                                       'data-avg-suhu-gabah="' + (row.avg_suhu_gabah || '-') + '" ' +
-                                       'data-avg-kadar-air-gabah="' + (row.avg_kadar_air_gabah || '-') + '">' +
-                                       (data || '-') + '</a>';
-                            }
-                            return data;
-                        }
-                    },
-                    { data: 'waktu', defaultContent: '-' },
-                    { data: 'suhu_pembakaran', defaultContent: '-' },
-                    { data: 'suhu_ruangan_1', defaultContent: '-' },
-                    { data: 'suhu_ruangan_2', defaultContent: '-' },
-                    { data: 'suhu_ruangan_3', defaultContent: '-' },
-                    { data: 'suhu_ruangan_4', defaultContent: '-' },
-                    { data: 'suhu_gabah_1', defaultContent: '-' },
-                    { data: 'suhu_gabah_2', defaultContent: '-' },
-                    { data: 'suhu_gabah_3', defaultContent: '-' },
-                    { data: 'suhu_gabah_4', defaultContent: '-' },
-                    { data: 'kadar_air_gabah_1', defaultContent: '-' },
-                    { data: 'kadar_air_gabah_2', defaultContent: '-' },
-                    { data: 'kadar_air_gabah_3', defaultContent: '-' },
-                    { data: 'kadar_air_gabah_4', defaultContent: '-' }
-                ],
-                order: [[0, 'asc']],
-                language: {
-                    processing: 'Memuat data...',
-                    emptyTable: 'Tidak ada data sensor untuk proses ini.',
-                    info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ entri',
-                    infoEmpty: 'Menampilkan 0 sampai 0 dari 0 entri',
-                    lengthMenu: 'Tampilkan _MENU_ entri',
-                    search: 'Cari:',
-                    paginate: {
-                        first: 'Pertama',
-                        last: 'Terakhir',
-                        next: 'Selanjutnya',
-                        previous: 'Sebelumnya'
-                    }
-                },
-                footerCallback: function(row, data, start, end, display) {
-                    var api = this.api();
-                    var json = api.ajax.json();
-                    if (json && json.averages) {
-                        $('#avgSuhuPembakaran').text(json.averages.suhu_pembakaran || '-');
-                        $('#avgSuhuRuangan').text(json.averages.suhu_ruangan || '-');
-                        $('#avgSuhuGabah').text(json.averages.suhu_gabah || '-');
-                        $('#avgKadarAirGabah').text(json.averages.kadar_air_gabah || '-');
-                    } else {
-                        console.error('No averages data in JSON response');
-                        $('#avgSuhuPembakaran').text('-');
-                        $('#avgSuhuRuangan').text('-');
-                        $('#avgSuhuGabah').text('-');
-                        $('#avgKadarAirGabah').text('-');
-                    }
-                }
+            const pembakaranData = item.sensor_data.pembakaran_pengaduk[0] || {
+                suhu_pembakaran: '-',
+                status_pengaduk: '-'
+            };
+            const tombak = item.sensor_data.tombak[0] || {
+                suhu_ruangan: '-',
+                kadar_air_gabah: '-',
+                suhu_gabah: '-'
+            };
+
+            const timestamp = new Date(item.timestamp).toLocaleString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit' // <-- Perbaikan di sini
             });
 
-            // Event handler untuk klik pada tautan interval
-            $('#sensorTable').on('click', '.interval-link', function(e) {
-                e.preventDefault();
-                var interval = $(this).data('interval');
-                var avgSuhuRuangan = $(this).data('avg-suhu-ruangan');
-                var avgSuhuGabah = $(this).data('avg-suhu-gabah');
-                var avgKadarAirGabah = $(this).data('avg-kadar-air-gabah');
+            const collapseId = `collapseInterval${index + 1}`;
+            const html = `
+                <div class="card shadow-sm mb-3" style="background-color: rgb(127 144 190 / 16%); border: 1px solid #d0d4df; border-radius: 15px">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center toggle-header"
+                            data-bs-toggle="collapse" href="#${collapseId}" role="button" aria-expanded="false"
+                            aria-controls="${collapseId}" style="cursor: pointer;">
+                            <div>
+                                <h6 style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important; margin-bottom: 12px;">
+                                    Interval ${index + 1}</h6>
+                                <div><i class="bi bi-droplet me-2"></i>Kadar Air Gabah (rata-rata): <span class="fw-bold">
+                                    ${kadarAirRata}</span></div>
+                            </div>
+                            <i class="bi bi-chevron-right toggle-icon" style="font-size: 15px;"></i>
+                        </div>
+                        <div class="collapse mt-3" id="${collapseId}">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-clock-history me-2"></i>Timestamp:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${timestamp}</span>
+                            </div>
+                            <h6 class="mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Pembakaran & Pengaduk</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-fire me-2"></i>Suhu Pembakaran:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.suhu_pembakaran !== '-' ? pembakaranData.suhu_pembakaran + ' °C' : '-'}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-repeat me-2"></i>Status Pengaduk:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.status_pengaduk}</span>
+                            </div>
+                            <h6 class="fw-bold mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Tombak 1</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-thermometer-sun me-2"></i>Suhu Ruangan:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_ruangan !== '-' ? tombak.suhu_ruangan + ' °C' : '-'}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-droplet-half me-2"></i>Kadar Air Gabah:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${tombak.kadar_air_gabah !== '-' ? tombak.kadar_air_gabah + ' %' : '-'}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-thermometer-high me-2"></i>Suhu Gabah:</span>
+                                <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_gabah !== '-' ? tombak.suhu_gabah + ' °C' : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-                // Validasi data
-                if (!interval || avgSuhuRuangan === '-' || avgSuhuGabah === '-' || avgKadarAirGabah === '-') {
-                    console.error('Invalid interval data:', {
-                        interval: interval,
-                        avgSuhuRuangan: avgSuhuRuangan,
-                        avgSuhuGabah: avgSuhuGabah,
-                        avgKadarAirGabah: avgKadarAirGabah
-                    });
-                    alert('Data rata-rata untuk interval ini tidak tersedia.');
-                    return;
-                }
-
-                // Update konten modal
-                $('#averageModalLabel').text('Rata-rata Sensor Interval ' + interval);
-                $('#modalAvgSuhuRuangan').text(avgSuhuRuangan + ' °C');
-                $('#modalAvgSuhuGabah').text(avgSuhuGabah + ' °C');
-                $('#modalAvgKadarAirGabah').text(avgKadarAirGabah + ' %');
-
-                // Tampilkan modal
-                try {
-                    var modal = new bootstrap.Modal(document.getElementById('averageModal'), {});
-                    modal.show();
-                } catch (error) {
-                    console.error('Error showing modal:', error);
-                    alert('Gagal menampilkan modal. Pastikan Bootstrap dimuat dengan benar.');
-                }
-            });
+            const container = index < 3 ? sensorDataContainer : extraIntervalsContainer;
+            container.insertAdjacentHTML('beforeend', html);
         });
-    </script>
+    })
+    .catch(error => {
+        console.error('Error fetching sensor data:', error);
+        document.getElementById('sensor-data').innerHTML = '<p class="text-danger">Gagal memuat data sensor.</p>';
+    });
+
+    document.addEventListener('show.bs.collapse', function(e) {
+        const icon = document.querySelector(`[href="#${e.target.id}"] .toggle-icon`);
+        if (icon) {
+            icon.classList.remove('bi-chevron-right');
+            icon.classList.add('bi-chevron-down');
+        }
+    });
+
+    document.addEventListener('hide.bs.collapse', function(e) {
+        const icon = document.querySelector(`[href="#${e.target.id}"] .toggle-icon`);
+        if (icon) {
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-right');
+        }
+    });
+
+    document.getElementById('toggleMoreBtn').addEventListener('click', function() {
+        const extra = document.getElementById('extra-intervals');
+        const isHidden = extra.classList.contains('d-none');
+        extra.classList.toggle('d-none');
+        this.textContent = isHidden ? 'Sembunyikan' : 'Lihat Selengkapnya';
+    });
+});
+</script>
 @endsection

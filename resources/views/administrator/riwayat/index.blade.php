@@ -1,302 +1,424 @@
 @extends('layout.app')
 
 @section('content')
-    <style>
-        .table-responsive {
-            overflow-x: auto;
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+{{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
+
+<style>
+    .riwayat-card {
+        background-color: rgb(127 144 190 / 16%);
+        cursor: pointer;
+        border: 1px solid #d0d4df;
+        border-radius: 15px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 2px 6px rgba(30, 59, 138, 0.1);
+    }
+    .riwayat-card:hover { transform: scale(1.00); box-shadow: 0 6px 20px rgba(30, 59, 138, 0.25); }
+    .btn-simpan { background-color: #1E3B8A; color: #fff; transition: background-color 0.2s ease; }
+    .btn-simpan:hover { background-color: #163372; }
+    .btn-clear { background-color: #6c757d; color: #fff; transition: background-color 0.2s ease; }
+    .btn-clear:hover { background-color: #5a6268; }
+
+    #notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            opacity: 0;
+            transition: opacity .5s
         }
 
-        /* Memastikan semua judul kolom rata tengah */
-        #riwayatTable thead th {
-            text-align: center;
-            vertical-align: middle;
-            /* background-color: #f8f9fa; */
-            font-weight: 600;
-            color: #333;
+        #notification.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745
         }
 
-        /* Styling untuk baris tabel */
-        #riwayatTable tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
+        #notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545
         }
 
-        #riwayatTable tbody tr:hover {
-            /* background-color: #e9f7ff; */
-        }
-
-        .filter-group {
+        #notification.visible {
             display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            align-items: flex-end;
-            /* Menyelaraskan elemen ke bawah */
+            opacity: 1
         }
 
-        .filter-item {
-            flex: 1;
-            min-width: 200px;
-            /* Minimal lebar untuk mencegah input terlalu kecil */
+        #notificationTitle {
+            font-weight: bold;
+            margin-bottom: 5px
         }
 
-        .filter-item label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.25rem;
+        #notificationMessage {
+            font-size: 14px
         }
+</style>
 
-        .filter-item input.form-control {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            height: 2.5rem;
-            /* Tinggi sama dengan tombol */
-            font-size: 0.875rem;
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            background-color: white;
-        }
+<div class="container mt-4">
+    <div id="notification" class="alert position-fixed top-0 end-0 m-4" style="display:none;">
+    <div id="notificationTitle" style="font-weight: bold;"></div>
+    <div id="notificationMessage"></div>
+</div>
 
-        .filter-item input.form-control:focus {
-            outline: none;
-            border-color: #1e3a8a;
-            /* Warna biru sesuai tema Anda */
-            box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
-        }
+    <h2 class="fw-bold mb-3">Riwayat</h2>
 
-        .filter-item.filter-button {
-            flex: 0 0 auto;
-            /* Tombol tidak mengambil ruang flex penuh */
-        }
-
-        .filter-item button.btn-reset {
-            padding: 0.5rem 1rem;
-            background-color: #e5e7eb;
-            color: #374151;
-            border: none;
-            border-radius: 0.375rem;
-            height: 2.5rem;
-            /* Tinggi sama dengan input */
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            min-width: 30px;
-            /* Lebar minimal untuk konsistensi */
-        }
-
-        .filter-item button.btn-reset:hover {
-            background-color: #d1d5db;
-        }
-
-        /* Responsivitas */
-        @media (max-width: 768px) {
-            .filter-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-item {
-                min-width: 100%;
-            }
-
-            .filter-item.filter-button {
-                display: flex;
-                justify-content: flex-end;
-                /* Tombol tetap di kanan pada layar kecil */
-            }
-
-            .filter-item button.btn-reset {
-                width: 100%;
-                /* Tombol penuh pada layar kecil */
-            }
-        }
-
-        .btn-number {
-            background-color: #bfdbfe;
-            /* bg-blue-100 */
-            color: #1e3a8a;
-            /* text-blue-900 */
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            font-size: 12px;
-        }
-
-        .btn-number:hover {
-            background-color: #A0B8FF;
-            /* Warna lebih gelap saat hover */
-        }
-    </style>
-
-    <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Riwayat Kegiatan Pengeringan</h4>
-    <div class="filter-group">
-        <div class="filter-item">
-            <label for="filter_datetime_mulai">Waktu Mulai</label>
-            <input type="datetime-local" id="filter_datetime_mulai" class="form-control">
+    <div class="mb-3 d-flex align-items-end gap-2">
+        <div>
+            <label for="filterTanggal" class="form-label">Cari Tanggal:</label>
+            <input style="background-color:#ffff;" type="date" id="filterTanggal" class="form-control" style="max-width:300px;">
         </div>
-        <div class="filter-item">
-            <label for="filter_datetime_berakhir">Waktu Berakhir</label>
-            <input type="datetime-local" id="filter_datetime_berakhir" class="form-control">
-        </div>
-        <div class="filter-item filter-button">
-            <label>&nbsp;</label> <!-- Placeholder untuk menjaga keselarasan -->
-            <button id="reset_filter_btn"
-                class="btn btn-reset w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-md h-10 hover:bg-gray-300 transition flex items-center justify-center gap-2">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-        </div>
+        <button id="clearFilter" class="btn btn-clear btn-sm" style="height:36px;">
+            <i class="bi bi-x-circle me-1"></i> Reset
+        </button>
     </div>
-    <div class="card mt-4">
-        <div class="card-body">
-            <div class="table-responsive" style="overflow-x: auto;">
-                <table id="riwayatTable" class="table table-bordered table-striped">
-                    <thead class="text-center">
-                        <tr>
-                            <th rowspan="2">No</th>
-                            <th rowspan="2">Jenis Gabah</th>
-                            <th colspan="2">Tanggal</th>
-                            <th colspan="2">Jam</th>
-                            <th colspan="2">Massa Gabah (Kg)</th>
-                            <th rowspan="2">Durasi Terlaksana IoT (Menit)</th>
-                            <th rowspan="2">Durasi Hasil Validasi (Menit)</th>
-                            <th rowspan="2">Durasi Model ML (Menit)</th>
-                        </tr>
-                        <tr>
-                            <th>Mulai</th>
-                            <th>Berakhir</th>
-                            <th>Mulai</th>
-                            <th>Berakhir</th>
-                            <th>Awal</th>
-                            <th>Akhir</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data akan diisi oleh DataTables via AJAX -->
-                    </tbody>
-                </table>
+
+    <div class="mb-4 text-muted fw-semibold" id="currentDate">
+        {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
+    </div>
+
+    <div class="row" id="riwayatContainer"></div>
+</div>
+
+<!-- Modal Validasi: hanya Berat Gabah Akhir -->
+<div class="modal fade" id="modalValidasi" tabindex="-1" aria-labelledby="modalValidasiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header text-white rounded-top-4">
+                <h5 class="modal-title fw-semibold" style="color:#1E3B8A" id="modalValidasiLabel">
+                    <i class="bi bi-patch-check-fill me-2"></i> Lengkapi Proses Pengeringan
+                </h5>
+                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
+            <form id="formValidasi" method="POST">
+                @csrf
+                <div class="modal-body px-4">
+                    <input type="hidden" name="process_id" id="processIdInput">
+                    <div class="mb-3">
+                        <label for="beratAkhir" class="form-label fw-100">Berat Gabah Akhir (kg)</label>
+                        <input type="number" class="form-control" id="beratAkhir" name="berat_akhir" step="0.01" min="0" required>
+                        <div id="errorBeratAkhir" class="text-danger small mt-1"></div> <!-- Error di sini -->
+                    </div>
+                </div>
+                <div class="modal-footer px-4 pb-4">
+                    <button type="submit" class="btn btn-simpan">
+                        <i class="bi bi-check-circle me-1"></i> Simpan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+// ===============================
+// Riwayat + Validasi (pakai notifikasi + auto-reload)
+// ===============================
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Element & Konfigurasi ---
+    const modal = document.getElementById('modalValidasi');
+    const inputProcessId = document.getElementById('processIdInput');
+    const form = document.getElementById('formValidasi');
+    const apiBaseUrl = "{{ config('services.api.base_url') }}";
+    const token = "{{ session('sanctum_token') }}";
+    const filterTanggalInput = document.getElementById('filterTanggal');
+    const clearFilterButton = document.getElementById('clearFilter');
+    const riwayatContainer = document.getElementById('riwayatContainer');
 
-    <script>
-        (function($) {
-            $(document).ready(function() {
-                var table = $('#riwayatTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: '{{ route('riwayat.data') }}',
-                        type: 'GET',
-                        data: function(d) {
-                            d.datetime_mulai = $('#filter_datetime_mulai').val();
-                            d.datetime_berakhir = $('#filter_datetime_berakhir').val();
-                        },
-                        dataSrc: 'data',
-                        error: function(xhr) {
-                            console.error('AJAX Error:', xhr);
-                            alert('Terjadi kesalahan saat memuat data: ' + (xhr.status === 500 ?
-                                'Kesalahan server. Silakan coba lagi.' :
-                                'Terjadi kesalahan.'));
-                        }
-                    },
-                    columns: [{
-                            data: null,
-                            render: function(data, type, row, meta) {
-                                return `<button class="btn-number bg-blue-100 text-blue-900 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition ease-in-out duration-200" data-id="${row.id}" aria-label="Lihat detail untuk nomor ${meta.row + meta.settings._iDisplayStart + 1}">${meta.row + meta.settings._iDisplayStart + 1}</button>`;
-                            },
-                            className: 'text-center'
-                        },
-                        {
-                            data: 'jenis_gabah',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'tanggal_mulai',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'tanggal_berakhir',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'jam_mulai',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'jam_berakhir',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'massa_awal',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'massa_akhir',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'durasi_iot',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'durasi_validasi',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'durasi_ml',
-                            defaultContent: '-'
-                        }
-                    ]
-                });
+    // Set default filter ke hari ini
+    filterTanggalInput.value = new Date().toISOString().split('T')[0];
 
-                // Event untuk klik tombol nomor
-                $('#riwayatTable').on('click', '.btn-number', function() {
-                    var id = $(this).data('id');
-                    if (id) {
-                        window.location.href = '{{ route('riwayat.detail', ':id') }}'.replace(':id',
-                            id);
-                    }
-                });
+    // Event: ubah tanggal -> fetch
+    filterTanggalInput.addEventListener('change', fetchData);
 
-                // Event untuk klik baris (opsional, jika masih ingin baris dapat diklik)
-                $('#riwayatTable tbody').on('click', 'tr', function(e) {
-                    if ($(e.target).is('.btn-number'))
-                        return; // Hindari double trigger jika klik tombol
-                    var data = table.row(this).data();
-                    if (data && data.id) {
-                        window.location.href = '{{ route('riwayat.detail', ':id') }}'.replace(':id',
-                            data.id);
-                    }
-                });
+    // Event: reset -> kembali ke hari ini & fetch
+    clearFilterButton.addEventListener('click', function () {
+        filterTanggalInput.value = new Date().toISOString().split('T')[0];
+        fetchData();
+    });
 
-                // Event untuk otomatis filter saat Tanggal & Jam Mulai diubah
-                $('#filter_datetime_mulai').on('change', function() {
-                    table.ajax.reload();
-                });
+    // Load awal
+    fetchData();
 
-                // Event untuk otomatis filter saat Tanggal & Jam Berakhir diubah
-                $('#filter_datetime_berakhir').on('change', function() {
-                    table.ajax.reload();
-                });
+    // Saat modal dibuka: set action & process_id
+    modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const processId = button.getAttribute('data-process-id');
+        inputProcessId.value = processId;
+        form.action = `${apiBaseUrl}/validasi/${processId}`;
+    });
 
-                // Event untuk reset filter
-                $('#reset_filter_btn').on('click', function() {
-                    $('#filter_datetime_mulai').val('');
-                    $('#filter_datetime_berakhir').val('');
-                    table.ajax.reload();
-                });
+    form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    // Kosongkan pesan error dulu
+    document.getElementById('errorBeratAkhir').textContent = '';
+
+    if (!token) {
+        window.notify?.({
+            title: 'Sesi berakhir',
+            message: 'Sesi login tidak ditemukan. Kamu akan diarahkan ke halaman login.',
+            type: 'error',
+            duration: 3000
+        });
+        setTimeout(() => { window.location.href = '/login'; }, 3000);
+        return;
+    }
+
+    const beratAkhirInput = document.getElementById('beratAkhir');
+    const beratAkhir = parseFloat(beratAkhirInput.value);
+    const processId = inputProcessId.value;
+
+    // Ambil berat awal dari card (riwayatContainer)
+    const beratAwalEl = document.querySelector(
+        `.btn-validasi[data-process-id="${processId}"]`
+    )?.closest('.card')?.querySelector('.bi-box-seam')?.parentElement?.nextElementSibling?.textContent;
+
+    let beratAwal = null;
+    if (beratAwalEl) {
+        beratAwal = parseFloat(beratAwalEl.replace(/[^\d.]/g, '')); // Ambil angka saja
+    }
+
+    // Validasi di sisi client
+    if (beratAwal !== null && beratAkhir > beratAwal) {
+        document.getElementById('errorBeratAkhir').textContent =
+            `Berat gabah akhir tidak boleh lebih dari ${beratAwal} kg.`;
+        return;
+    }
+
+    const payload = {
+        process_id: processId,
+        berat_akhir: beratAkhir
+    };
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            // Kalau dari backend ada error validasi berat
+            if (result?.errors?.berat_akhir) {
+                document.getElementById('errorBeratAkhir').textContent =
+                    result.errors.berat_akhir.join(', ');
+                return;
+            }
+            throw new Error(result?.error || result?.pesan || 'Kesalahan server tidak diketahui');
+        }
+
+        window.notify?.({
+            title: 'Berhasil',
+            message: 'Validasi berhasil disimpan!',
+            type: 'success',
+            duration: 2500,
+            reload: true
+        });
+
+        fetchData();
+
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        modalInstance?.hide();
+        form.reset();
+
+    } catch (error) {
+        window.notify?.({
+            title: 'Gagal',
+            message: `Gagal menyimpan validasi: ${error.message}`,
+            type: 'error',
+            duration: 4000
+        });
+    }
+});
+
+    // Ambil data riwayat (dengan filter tanggal)
+    async function fetchData() {
+        if (!token) {
+            console.error('Token Sanctum tidak ditemukan');
+            riwayatContainer.innerHTML = '<p class="text-danger">Sesi login tidak ditemukan. Silakan <a href="/login">login kembali</a>.</p>';
+            window.notify?.({
+                title: 'Sesi berakhir',
+                message: 'Silakan login kembali.',
+                type: 'error',
+                duration: 3000
             });
-        })(jQuery.noConflict(true));
-    </script>
+            return;
+        }
+
+        riwayatContainer.innerHTML = '<p>Loading...</p>';
+
+        const filterTanggal = filterTanggalInput.value;
+
+        try {
+            const url = `${apiBaseUrl}/riwayat-proses${filterTanggal ? `?filter_tanggal=${filterTanggal}` : ''}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const result = await response.json();
+            const data = result?.data || [];
+            riwayatContainer.innerHTML = '';
+
+            if (data.length === 0) {
+                const formattedDate = filterTanggal
+                    ? new Date(filterTanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : 'hari ini';
+                riwayatContainer.innerHTML = `<p class="text-muted">Tidak ada data riwayat untuk ${formattedDate}.</p>`;
+                return;
+            }
+
+            const colClass = data.length === 1 ? 'col-md-12' : (data.length === 2 ? 'col-md-6' : 'col-md-4');
+
+            data.forEach(item => {
+                // Status tervalidasi: berdasar adanya berat_gabah_akhir
+                const isValidated = item.berat_gabah_akhir !== null && item.berat_gabah_akhir !== '';
+
+                // Waktu selesai (jam:menit:detik) + penanda hari jika beda hari
+                let selesaiDisplay = item.timestamp_selesai?.split(' ')[1] ?? '-';
+                let selesaiStyle = '';
+                let selesaiTooltip = item.timestamp_selesai || '-';
+
+                // Format tanggal mulai & selesai
+                let tanggalMulaiFormatted = item.timestamp_mulai_mentah
+                    ? new Date(item.timestamp_mulai_mentah).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : '-';
+
+                // let tanggalSelesaiFormatted = isValidated
+                //     ? new Date(item.timestamp_selesai).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                //     : '-';
+                let tanggalSelesaiFormatted = item.timestamp_selesai
+                    ? new Date(item.timestamp_selesai).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : '-';
+
+                // Tambahan tanda +xh jika lintas hari
+                if (isValidated && item.timestamp_mulai_mentah && item.timestamp_selesai) {
+                    const startDate = new Date(item.timestamp_mulai_mentah);
+                    const endDate = new Date(item.timestamp_selesai);
+                    const timeDiff = endDate - startDate;
+                    const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    if (dayDiff > 0) {
+                        selesaiDisplay = `${selesaiDisplay}<span style="font-weight:900;">+${dayDiff}h</span>`;
+                        selesaiStyle = 'text-decoration:underline;font-weight:900;margin-left:3px;';
+                    }
+                    selesaiTooltip = endDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                }
+
+                const cardHtml = `
+                    <div class="col-12 ${colClass} mb-4">
+                        <div class="card riwayat-card" onclick="window.location.href='/riwayat/detail/${item.process_id}'">
+                            <div class="card-body" style="padding:20px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-seedling me-2" style="color:#1E3B8A;font-size:20px;"></i>
+                                        <span class="ms-2 fw-bold" style="letter-spacing:1px;font-size:16px;color:#1E3B8A;">
+                                            ${item.nama_jenis ?? '-'}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        ${
+                                            isValidated
+                                            ? `<span class="fw-semibold d-flex align-items-center" style="color:rgb(49 164 119)">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                               </span>`
+                                            : `<button class="btn btn-outline-primary btn-sm btn-validasi"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalValidasi"
+                                                        data-process-id="${item.process_id}"
+                                                        onclick="event.stopPropagation()">
+                                                    <i class="bi bi-patch-check me-1"></i> Lengkapi
+                                               </button>`
+                                        }
+                                        <span class="ms-2" style="font-size:24px;">&#8250;</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 d-flex flex-wrap gap-3 text-muted" style="font-size:14px;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock me-1"></i> Mulai: ${item.timestamp_mulai_mentah?.split(' ')[1] ?? '-'}
+                                    </div>
+                                    |
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Selesai:
+                                        ${
+                                            item.timestamp_selesai
+                                            ? `<span class="selesai-time" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                                title="${selesaiTooltip}" style="${selesaiStyle}">${selesaiDisplay}</span>`
+                                            : '-'
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mt-3" style="font-size:14px;">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-calendar me-2"></i> Tanggal Mulai:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${tanggalMulaiFormatted}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-calendar-check me-2"></i> Tanggal Selesai:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${tanggalSelesaiFormatted}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-box-seam me-2"></i> Berat Gabah Awal:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${item.berat_gabah_awal ?? '-'} kg</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-box2-heart me-2"></i> Berat Gabah Akhir:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${item.berat_gabah_akhir ?? '-' } kg</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-hourglass-split me-2"></i> Estimasi Durasi:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${item.durasi_rekomendasi ?? '-'}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span><i class="bi bi-stopwatch me-2"></i> Durasi Terlaksana:</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">${item.durasi_terlaksana ?? '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                riwayatContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            // Aktifkan tooltip Bootstrap
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            riwayatContainer.innerHTML = '<p class="text-danger">Gagal memuat data. Silakan <a href="/login">login kembali</a>.</p>';
+            window.notify?.({
+                title: 'Gagal memuat',
+                message: 'Terjadi kendala saat memuat data riwayat.',
+                type: 'error',
+                duration: 3000
+            });
+        }
+    }
+});
+</script>
+
 @endsection
