@@ -5,6 +5,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+
         @media (max-width: 1024px) {
             body {
                 background-size: 80%;
@@ -1302,10 +1313,10 @@
             }
 
 
-            // ===== Pengaduk (pakai controller detail untuk "awal", realtime untuk "now") =====
-            function ensurePengadukModal(iconHtml) {
-                if (document.getElementById('modalPengaduk')) return;
-                const html = `
+            // ===== Pengaduk (hanya "Status Saat Ini") =====
+function ensurePengadukModal(iconHtml) {
+    if (document.getElementById('modalPengaduk')) return;
+    const html = `
 <div class="modal fade" id="modalPengaduk" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog" style="max-width:520px;">
     <div class="modal-content" style="border-radius:16px;border:none;overflow:hidden;box-shadow:0 4px 18px rgba(30,59,138,.2);">
@@ -1317,84 +1328,43 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
       </div>
       <div class="modal-body" style="padding:18px 20px;">
-        <div class="d-flex justify-content-between py-1"><span>Status Awal</span><span id="pengaduk-awal">-</span></div>
-        <hr class="my-2">
-        <div class="d-flex justify-content-between py-1"><span>Status Saat Ini</span><span id="pengaduk-now">-</span></div>
+        <div class="d-flex justify-content-between py-1">
+          <span>Status Saat Ini</span>
+          <span id="pengaduk-now">-</span>
+        </div>
       </div>
-
     </div>
   </div>
 </div>`;
-                const wrap = document.createElement('div');
-                wrap.innerHTML = html;
-                document.body.appendChild(wrap.firstElementChild);
-            }
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap.firstElementChild);
+}
 
-            async function openPengadukModal() {
-                try {
-                    ensurePengadukModal(`<i class="fa-solid fa-arrows-rotate text-lg" style="color:#1E3A8A"></i>`);
+async function openPengadukModal() {
+    try {
+        ensurePengadukModal(`<i class="fa-solid fa-arrows-rotate text-lg" style="color:#1E3A8A"></i>`);
 
-                    const maybePid = localStorage.getItem('active_process_id') || '';
-                    const {
-                        dp,
-                        sensors
-                    } = await getRealtime(maybePid);
-                    if (!dp || !dp.process_id) {
-                        (window.showNotification ? window.showNotification('Tidak ada proses berjalan.',
-                            'bg-red-500') : alert('Tidak ada proses berjalan.'));
-                        return;
-                    }
-                    const processId = dp.process_id;
+        const maybePid = localStorage.getItem('active_process_id') || '';
+        const { dp, sensors } = await getRealtime(maybePid);
 
-                    // AWAL: cari status pengaduk terdekat dari waktu mulai
-                    let awalTxt = '-';
-                    try {
-                        const startTime = await getProcessStartTime(processId);
-                        const detailArr = await getDetail(processId);
-                        // cari closest item
-                        const closest = findClosestRecords(detailArr, startTime,
-                            'suhu_pembakaran'); // pakai helper untuk dapat item terdekat
-                        if (closest && closest.ts) {
-                            // Temukan item dengan timestamp sama di detailArr
-                            const item = detailArr.find(x => String(x.timestamp) === String(closest.ts));
-                            if (item) awalTxt = statusText(item?.status_pengaduk);
-                        } else if (Array.isArray(detailArr) && detailArr.length) {
-                            // fallback: earliest dari detail
-                            const earliest = detailArr[detailArr.length - 1];
-                            awalTxt = statusText(earliest?.status_pengaduk);
-                        }
-                    } catch (e) {
-                        console.warn('Detail pengaduk awal gagal:', e);
-                    }
+        if (!dp || !dp.process_id) {
+            (window.showNotification ? window.showNotification('Tidak ada proses berjalan.', 'bg-red-500') : alert('Tidak ada proses berjalan.'));
+            return;
+        }
 
-                    // NOW: cari latest status pengaduk dari realtime
-                    let nowVal = null;
-                    if (sensors && Array.isArray(sensors.data)) {
-                        let best = null;
-                        for (const r of sensors.data) {
-                            const v = (r.status_pengaduk === 0 || r.status_pengaduk === 1) ? Number(r
-                                .status_pengaduk) : null;
-                            if (v === null) continue;
-                            const ts = parseTs(r.timestamp);
-                            if (!ts) continue;
-                            if (!best || ts > best.ts) best = {
-                                ts,
-                                v
-                            };
-                        }
-                        nowVal = best ? best.v : null;
-                    }
+        // ✅ NOW: langsung pakai `latest_stirrer_status` dari API
+        const nowVal = sensors.latest_stirrer_status;
 
-                    document.getElementById('pengaduk-awal').textContent = statusText(awalTxt);
-                    document.getElementById('pengaduk-now').textContent = statusText(nowVal);
+        document.getElementById('pengaduk-now').textContent = statusText(nowVal);
 
-                    new bootstrap.Modal(document.getElementById('modalPengaduk')).show();
-                } catch (err) {
-                    console.error('openPengadukModal error:', err);
-                    (window.showNotification ? window.showNotification('Gagal membuka detail pengaduk: ' + (err
-                        ?.message || err), 'bg-red-500') : alert('Gagal membuka detail pengaduk.'));
-                }
-            }
+        new bootstrap.Modal(document.getElementById('modalPengaduk')).show();
+    } catch (err) {
+        console.error('openPengadukModal error:', err);
+        (window.showNotification ? window.showNotification('Gagal membuka detail pengaduk: ' + (err?.message || err), 'bg-red-500') : alert('Gagal membuka detail pengaduk.'));
+    }
+}
+
 
             // ===== ICON SVG untuk header modal =====
             const ICON_SUHU_GABAH = `
@@ -1980,7 +1950,7 @@
         // Konfigurasi
         const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
         const baseUrl = "{{ config('services.api.base_url') }}";
-        const mlServerUrl = "http://192.168.43.142:5000";
+        const mlServerUrl = "http://192.168.0.11:5000";
         const userId = {{ auth()->id() ?? 'null' }};
         const POLLING_INTERVAL = 5000;
         const INITIAL_POLLING_INTERVAL = 3000;
@@ -2024,54 +1994,98 @@
         }
 
         async function fetchSensorData(processId = null, retries = MAX_RETRIES) {
-            const userId = {{ auth()->id() }};
-            const url = processId ? `${baseUrl}/get_sensor/realtime?user_id=${userId}&process_id=${processId}` :
-                `${baseUrl}/get_sensor/realtime?user_id=${userId}`;
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${sanctumToken}`,
-                        'Accept': 'application/json'
-                    }
-                });
-                if (!response.ok) {
-                    const err = await response.json().catch(() => ({}));
-                    throw new Error(err.error || `HTTP ${response.status}: ${response.statusText}`);
-                }
-                const data = await response.json();
+    const userId = {{ auth()->id() }};
+    const url = processId
+        ? `${baseUrl}/get_sensor/realtime?user_id=${userId}&process_id=${processId}`
+        : `${baseUrl}/get_sensor/realtime?user_id=${userId}`;
 
-                if (data.sensors && data.sensors.data) {
-                    data.sensors.data.forEach(sensor => {
-                        sensorDataByDevice[sensor.device_name] = {
-                            kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
-                            suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
-                            suhu_ruangan: parseFloat(sensor.suhu_ruangan) || 0,
-                            suhu_pembakaran: parseFloat(sensor.suhu_pembakaran) || 0,
-                            timestamp: sensor.timestamp
-                        };
-                    });
-                }
-                updateUI(data);
-                updateModalForm(data.sensors);
-                return data;
-            } catch (err) {
-                if (retries > 0) {
-                    await new Promise(r => setTimeout(r, 2000));
-                    return fetchSensorData(processId, retries - 1);
-                }
-                showNotification(`Gagal memuat data sensor: ${err.message}`, 'bg-red-500');
-                return {
-                    sensors: {
-                        data: [],
-                        avg_grain_moisture: 0,
-                        avg_grain_temperature: 0,
-                        avg_room_temperature: 0,
-                        avg_combustion_temperature: null
-                    },
-                    drying_process: null
-                };
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${sanctumToken}`,
+                'Accept': 'application/json'
             }
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${response.status}: ${response.statusText}`);
         }
+
+        const data = await response.json();
+
+        if (data.sensors && data.sensors.data) {
+            data.sensors.data.forEach(sensor => {
+                sensorDataByDevice[sensor.device_name] = {
+                    kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
+                    suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
+                    suhu_ruangan: parseFloat(sensor.suhu_ruangan) || 0,
+                    suhu_pembakaran: parseFloat(sensor.suhu_pembakaran) || 0,
+                    timestamp: sensor.timestamp
+                };
+            });
+        }
+
+        // // 🔹 Update status pengaduk di card langsung dari field backend
+        // if (data.sensors && "latest_stirrer_status" in data.sensors) {
+        //     const statusText = (v) =>
+        //         (v === 1 || v === true || v === "Aktif")
+        //             ? "Aktif"
+        //             : (v === 0 || v === false || v === "Nonaktif")
+        //                 ? "Nonaktif"
+        //                 : "-";
+
+        //     document.getElementById("statusPengadukText").innerText =
+        //         statusText(data.sensors.latest_stirrer_status);
+        // }
+
+// 🔹 Update status pengaduk di card langsung dari field backend
+if (data.sensors && "latest_stirrer_status" in data.sensors) {
+    const statusVal = data.sensors.latest_stirrer_status;
+
+    const elText = document.getElementById("statusPengadukText");
+    const elIcon = document.querySelector("#cardPengaduk i");
+
+    const statusText = (v) =>
+        (v === 1 || v === true || v === "Aktif")
+            ? "Aktif"
+            : (v === 0 || v === false || v === "Nonaktif")
+                ? "Nonaktif"
+                : "-";
+
+    // Update teks status
+    elText.innerText = statusText(statusVal);
+
+    // Update animasi icon
+    if (statusVal === 1 || statusVal === true || statusVal === "Aktif") {
+        elIcon.classList.add("fa-spin");   // 🔄 icon muter
+    } else {
+        elIcon.classList.remove("fa-spin"); // ❌ stop muter
+    }
+}
+
+        updateUI(data);
+        updateModalForm(data.sensors);
+        return data;
+
+    } catch (err) {
+        if (retries > 0) {
+            await new Promise(r => setTimeout(r, 2000));
+            return fetchSensorData(processId, retries - 1);
+        }
+        showNotification(`Gagal memuat data sensor: ${err.message}`, 'bg-red-500');
+        return {
+            sensors: {
+                data: [],
+                avg_grain_moisture: 0,
+                avg_grain_temperature: 0,
+                avg_room_temperature: 0,
+                avg_combustion_temperature: null,
+                latest_stirrer_status: null
+            },
+            drying_process: null
+        };
+    }
+}
 
         function updateUI(data) {
             const dryingProcess = data.drying_process;
@@ -2356,7 +2370,7 @@
 
                 // Tambahkan timeout untuk fetch
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout setelah 10 detik
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // Timeout setelah 10 detik
                 const resp = await fetch(`${mlServerUrl}/`, {
                     method: 'POST',
                     headers: {

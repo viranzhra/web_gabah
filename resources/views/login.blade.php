@@ -73,7 +73,7 @@
                                 <form id="form-register" method="POST" action="{{ config('services.api.base_url') }}/register">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="register-name" class="form-label">Nama Lengkap</label>
+                                        <label for="register-name" class="form-label">Nama Mitra</label>
                                         <input type="text" class="form-control" id="register-name" name="name">
                                     </div>
                                     <div class="mb-3">
@@ -105,11 +105,6 @@
                                         <label for="password" class="form-label">Password</label>
                                         <input type="password" class="form-control" id="password" name="password">
                                     </div>
-                                    {{-- <div class="mb-3 text-start">
-                                        <a href="#" class="text-decoration-none" style="color: #1E3B8A; font-weight: 600;">
-                                            Lupa Password?
-                                        </a>
-                                    </div> --}}
                                     <button type="submit" class="btn w-100 py-2 mb-4 rounded-2"
                                         style="background-color: #1E3B8A; color: #fff; font-weight: 700;">
                                         Login
@@ -171,9 +166,10 @@
                     },
                     success: function (response) {
                         if (response.status === 'success') {
+                            // Store token to ensure user is logged in
                             localStorage.removeItem('token');
-                            // Store token and show success message
                             localStorage.setItem('token', response.data.token);
+                            // Show success message
                             $("#alert-message")
                                 .removeClass('alert-danger')
                                 .addClass('alert-success')
@@ -181,9 +177,9 @@
                                 .find('#alert-text')
                                 .text(response.message);
                             
-                            // Redirect after a short delay
+                            // Redirect to landing page after a short delay
                             setTimeout(() => {
-                                window.location.href = '/dashboard';
+                                window.location.href = '/';
                             }, 1000);
                         }
                     },
