@@ -5,15 +5,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
-.icon-spin {
-  animation: spin 1s linear infinite;
-}
+        .icon-spin {
+            animation: spin 1s linear infinite;
+        }
 
 
         @media (max-width: 1024px) {
@@ -450,6 +454,17 @@
         });
     </script>
 
+    <!-- Dropdown for Dryer Selection (Ambil dryer_id berdasarkan parameter warehouse_id dan user_id)-->
+<div class="mb-6">
+    <label for="dryer_id" class="form-label">Pilih Dryer</label>
+    <select id="dryer_id" class="form-control" onchange="updateDryerId()">
+        <option value="" disabled selected>-- Pilih Dryer --</option>
+        @for ($i = 1; $i <= 5; $i++)
+            <option value="{{ $i }}">Dryer {{ $i }}</option>
+        @endfor
+    </select>
+</div>
+
     <!-- Card Tambahan -->
     <div class="bg-[#1E3A8A] text-white shadow-lg p-9 mb-6" style="border-radius: 10px;">
         <p class="text-white/85" style="padding-bottom: 8px;">Status Pengeringan</p>
@@ -575,8 +590,10 @@
 
             // ====== API ======
             async function getRealtime(possiblePid) {
-                const url =
-                    `${API_BASE}/get_sensor/realtime?user_id=${encodeURIComponent(USER_ID)}${possiblePid ? `&process_id=${encodeURIComponent(possiblePid)}` : ''}`;
+                const dryerId = localStorage.getItem('selected_dryer_id') || '';
+                let url = `${API_BASE}/get_sensor/realtime?user_id=${encodeURIComponent(USER_ID)}`;
+                if (possiblePid) url += `&process_id=${encodeURIComponent(possiblePid)}`;
+                if (dryerId) url += `&dryer_id=${encodeURIComponent(dryerId)}`;
                 const res = await fetch(url, {
                     headers: headersAuth(false)
                 });
@@ -1314,9 +1331,9 @@
 
 
             // ===== Pengaduk (hanya "Status Saat Ini") =====
-function ensurePengadukModal(iconHtml) {
-    if (document.getElementById('modalPengaduk')) return;
-    const html = `
+            function ensurePengadukModal(iconHtml) {
+                if (document.getElementById('modalPengaduk')) return;
+                const html = `
 <div class="modal fade" id="modalPengaduk" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog" style="max-width:520px;">
     <div class="modal-content" style="border-radius:16px;border:none;overflow:hidden;box-shadow:0 4px 18px rgba(30,59,138,.2);">
@@ -1336,34 +1353,39 @@ function ensurePengadukModal(iconHtml) {
     </div>
   </div>
 </div>`;
-    const wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    document.body.appendChild(wrap.firstElementChild);
-}
+                const wrap = document.createElement('div');
+                wrap.innerHTML = html;
+                document.body.appendChild(wrap.firstElementChild);
+            }
 
-async function openPengadukModal() {
-    try {
-        ensurePengadukModal(`<i class="fa-solid fa-arrows-rotate text-lg" style="color:#1E3A8A"></i>`);
+            async function openPengadukModal() {
+                try {
+                    ensurePengadukModal(`<i class="fa-solid fa-arrows-rotate text-lg" style="color:#1E3A8A"></i>`);
 
-        const maybePid = localStorage.getItem('active_process_id') || '';
-        const { dp, sensors } = await getRealtime(maybePid);
+                    const maybePid = localStorage.getItem('active_process_id') || '';
+                    const {
+                        dp,
+                        sensors
+                    } = await getRealtime(maybePid);
 
-        if (!dp || !dp.process_id) {
-            (window.showNotification ? window.showNotification('Tidak ada proses berjalan.', 'bg-red-500') : alert('Tidak ada proses berjalan.'));
-            return;
-        }
+                    if (!dp || !dp.process_id) {
+                        (window.showNotification ? window.showNotification('Tidak ada proses berjalan.',
+                            'bg-red-500') : alert('Tidak ada proses berjalan.'));
+                        return;
+                    }
 
-        // ✅ NOW: langsung pakai `latest_stirrer_status` dari API
-        const nowVal = sensors.latest_stirrer_status;
+                    // ✅ NOW: langsung pakai `latest_stirrer_status` dari API
+                    const nowVal = sensors.latest_stirrer_status;
 
-        document.getElementById('pengaduk-now').textContent = statusText(nowVal);
+                    document.getElementById('pengaduk-now').textContent = statusText(nowVal);
 
-        new bootstrap.Modal(document.getElementById('modalPengaduk')).show();
-    } catch (err) {
-        console.error('openPengadukModal error:', err);
-        (window.showNotification ? window.showNotification('Gagal membuka detail pengaduk: ' + (err?.message || err), 'bg-red-500') : alert('Gagal membuka detail pengaduk.'));
-    }
-}
+                    new bootstrap.Modal(document.getElementById('modalPengaduk')).show();
+                } catch (err) {
+                    console.error('openPengadukModal error:', err);
+                    (window.showNotification ? window.showNotification('Gagal membuka detail pengaduk: ' + (err
+                        ?.message || err), 'bg-red-500') : alert('Gagal membuka detail pengaduk.'));
+                }
+            }
 
 
             // ===== ICON SVG untuk header modal =====
@@ -1576,117 +1598,114 @@ async function openPengadukModal() {
             }
 
             async function updateSidebar() {
-                try {
-                    const token = (typeof sanctumToken !== 'undefined' && sanctumToken) ? sanctumToken :
-                        (localStorage.getItem('sanctum_token') || '');
-                    const headers = {
-                        Accept: 'application/json'
-                    };
-                    if (token) headers['Authorization'] = 'Bearer ' + token;
+    try {
+        const token = (typeof sanctumToken !== 'undefined' && sanctumToken) ? sanctumToken :
+            (localStorage.getItem('sanctum_token') || '');
+        const headers = {
+            Accept: 'application/json'
+        };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
 
-                    const pid = localStorage.getItem('active_process_id') || '';
-                    const url =
-                        "{{ config('services.api.base_url') }}/get_sensor/realtime?user_id={{ auth()->id() ?? 1 }}" +
-                        (pid ? `&process_id=${pid}` : '');
+        const pid = localStorage.getItem('active_process_id') || '';
+        const dryerId = localStorage.getItem('selected_dryer_id') || '';
+        let url = "{{ config('services.api.base_url') }}/get_sensor/realtime?user_id={{ auth()->id() ?? 1 }}";
+        if (pid) url += `&process_id=${pid}`;
+        if (dryerId) url += `&dryer_id=${dryerId}`; // Tambahkan dryer_id
 
-                    const res = await fetch(url, {
-                        headers
-                    });
-                    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                    const data = await res.json();
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const data = await res.json();
 
-                    const dp = data.drying_process || data?.data?.drying_process || null;
+        const dp = data.drying_process || data?.data?.drying_process || null;
 
-                    if (!dp || dp.status !== 'ongoing') {
-                        showNoProcess();
-                        if (durasiTimer) {
-                            clearInterval(durasiTimer);
-                            durasiTimer = null;
-                        }
-                        lastPid = null;
-                        lastStartTs = null;
-                        return;
-                    }
+        if (!dp || dp.status !== 'ongoing' || (dryerId && dp.dryer_id !== dryerId)) {
+            showNoProcess();
+            if (durasiTimer) {
+                clearInterval(durasiTimer);
+                durasiTimer = null;
+            }
+            lastPid = null;
+            lastStartTs = null;
+            return;
+        }
 
-                    // Estimasi
-                    const durasiRekom = isNum(dp.durasi_rekomendasi) ? parseFloat(dp.durasi_rekomendasi) : 0;
-                    document.getElementById('durasiText').innerText = fmtDur(durasiRekom);
+        // Estimasi
+        const durasiRekom = isNum(dp.durasi_rekomendasi) ? parseFloat(dp.durasi_rekomendasi) : 0;
+        document.getElementById('durasiText').innerText = fmtDur(durasiRekom);
 
-                    // --- Ambil detail proses untuk nama_jenis (sesuai controller index/join) ---
-                    const processId = dp.process_id;
-                    let jenisText = 'Tidak tersedia';
-                    let tsMulaiFromDetail = null;
+        // --- Ambil detail proses untuk nama_jenis ---
+        const processId = dp.process_id;
+        let jenisText = 'Tidak tersedia';
+        let tsMulaiFromDetail = null;
 
-                    if (processId) {
-                        const detail = await fetchProcessDetail(processId, headers);
-                        if (detail) {
-                            if (detail.nama_jenis) jenisText = detail.nama_jenis;
-                            if (detail.timestamp_mulai) tsMulaiFromDetail = detail.timestamp_mulai;
+        if (processId) {
+            const detail = await fetchProcessDetail(processId, headers);
+            if (detail) {
+                if (detail.nama_jenis) jenisText = detail.nama_jenis;
+                if (detail.timestamp_mulai) tsMulaiFromDetail = detail.timestamp_mulai;
 
-                            // Jika berat awal kosong di realtime, ambil dari detail
-                            if (!isNum(dp.berat_gabah_awal) && isNum(detail.berat_gabah_awal)) {
-                                document.getElementById('beratGabahAwal').innerText =
-                                    `${parseFloat(detail.berat_gabah_awal).toLocaleString('id-ID')} kg`;
-                            }
-                        }
-                    }
-                    document.getElementById('jenisGabah').innerText = jenisText;
-
-                    // Berat gabah awal (prioritas dari realtime; kalau tidak ada, sudah di-handle di atas)
-                    if (isNum(dp.berat_gabah_awal)) {
-                        document.getElementById('beratGabahAwal').innerText =
-                            `${parseFloat(dp.berat_gabah_awal).toLocaleString('id-ID')} kg`;
-                    } else if (document.getElementById('beratGabahAwal').innerText === 'Tidak tersedia') {
-                        document.getElementById('beratGabahAwal').innerText = 'Tidak tersedia';
-                    }
-
-                    // Target kadar air
-                    const target = isNum(dp.kadar_air_target) ? dp.kadar_air_target : 14;
-                    document.getElementById('targetKadarAir').innerText = `${parseFloat(target).toFixed(0)}%`;
-
-                    // Timestamp mulai: ambil dari realtime / cache / detail
-                    const cacheKey = 'process_start_ts_' + dp.process_id;
-                    let tsMulai = dp.timestamp_mulai || localStorage.getItem(cacheKey) || tsMulaiFromDetail || null;
-                    if (!tsMulai) {
-                        // fallback ekstra ke detail lagi bila perlu
-                        const d = await fetchProcessDetail(dp.process_id, headers);
-                        tsMulai = d?.timestamp_mulai || null;
-                    }
-                    if (tsMulai) localStorage.setItem(cacheKey, tsMulai);
-
-                    document.getElementById('waktuDimulai').innerText = fmtDateTime(tsMulai);
-
-                    if (tsMulai) {
-                        if (String(lastPid) !== String(dp.process_id) || lastStartTs !== tsMulai) {
-                            lastPid = dp.process_id;
-                            lastStartTs = tsMulai;
-                            startDurasiTicker(tsMulai);
-                        } else {
-                            document.getElementById('durasiTerlaksanaText').innerText = fmtDur(minutesSince(
-                                tsMulai));
-                        }
-                    } else {
-                        document.getElementById('durasiTerlaksanaText').innerText = 'Tidak tersedia';
-                        if (durasiTimer) {
-                            clearInterval(durasiTimer);
-                            durasiTimer = null;
-                        }
-                    }
-
-                    document.getElementById('miniSidebar').style.display = 'block';
-                    document.getElementById('noProcessMessage').style.display = 'none';
-                    document.querySelector('.duration-option').style.display = 'flex';
-                } catch (err) {
-                    console.error('mini-sidebar realtime error:', err);
-                    showNoProcess();
-                    if (durasiTimer) {
-                        clearInterval(durasiTimer);
-                        durasiTimer = null;
-                    }
-                    lastPid = null;
-                    lastStartTs = null;
+                // Jika berat awal kosong di realtime, ambil dari detail
+                if (!isNum(dp.berat_gabah_awal) && isNum(detail.berat_gabah_awal)) {
+                    document.getElementById('beratGabahAwal').innerText =
+                        `${parseFloat(detail.berat_gabah_awal).toLocaleString('id-ID')} kg`;
                 }
             }
+        }
+        document.getElementById('jenisGabah').innerText = jenisText;
+
+        // Berat gabah awal
+        if (isNum(dp.berat_gabah_awal)) {
+            document.getElementById('beratGabahAwal').innerText =
+                `${parseFloat(dp.berat_gabah_awal).toLocaleString('id-ID')} kg`;
+        } else if (document.getElementById('beratGabahAwal').innerText === 'Tidak tersedia') {
+            document.getElementById('beratGabahAwal').innerText = 'Tidak tersedia';
+        }
+
+        // Target kadar air
+        const target = isNum(dp.kadar_air_target) ? dp.kadar_air_target : 14;
+        document.getElementById('targetKadarAir').innerText = `${parseFloat(target).toFixed(0)}%`;
+
+        // Timestamp mulai
+        const cacheKey = 'process_start_ts_' + dp.process_id;
+        let tsMulai = dp.timestamp_mulai || localStorage.getItem(cacheKey) || tsMulaiFromDetail || null;
+        if (!tsMulai) {
+            const d = await fetchProcessDetail(dp.process_id, headers);
+            tsMulai = d?.timestamp_mulai || null;
+        }
+        if (tsMulai) localStorage.setItem(cacheKey, tsMulai);
+
+        document.getElementById('waktuDimulai').innerText = fmtDateTime(tsMulai);
+
+        if (tsMulai) {
+            if (String(lastPid) !== String(dp.process_id) || lastStartTs !== tsMulai) {
+                lastPid = dp.process_id;
+                lastStartTs = tsMulai;
+                startDurasiTicker(tsMulai);
+            } else {
+                document.getElementById('durasiTerlaksanaText').innerText = fmtDur(minutesSince(tsMulai));
+            }
+        } else {
+            document.getElementById('durasiTerlaksanaText').innerText = 'Tidak tersedia';
+            if (durasiTimer) {
+                clearInterval(durasiTimer);
+                durasiTimer = null;
+            }
+        }
+
+        document.getElementById('miniSidebar').style.display = 'block';
+        document.getElementById('noProcessMessage').style.display = 'none';
+        document.querySelector('.duration-option').style.display = 'flex';
+    } catch (err) {
+        console.error('mini-sidebar realtime error:', err);
+        showNoProcess();
+        if (durasiTimer) {
+            clearInterval(durasiTimer);
+            durasiTimer = null;
+        }
+        lastPid = null;
+        lastStartTs = null;
+    }
+}
 
             updateSidebar();
             setInterval(updateSidebar, 10000);
@@ -1950,7 +1969,7 @@ async function openPengadukModal() {
         // Konfigurasi
         const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
         const baseUrl = "{{ config('services.api.base_url') }}";
-        const mlServerUrl = "http://192.168.0.11:5000";
+        const mlServerUrl = "http://192.168.43.142:5000";
         const userId = {{ auth()->id() ?? 'null' }};
         const POLLING_INTERVAL = 5000;
         const INITIAL_POLLING_INTERVAL = 3000;
@@ -1993,11 +2012,27 @@ async function openPengadukModal() {
             }
         }
 
-        async function fetchSensorData(processId = null, retries = MAX_RETRIES) {
+        // Fungsi untuk menyimpan dryer_id dan memicu pembaruan data
+window.updateDryerId = function () {
+    const dryerId = document.getElementById('dryer_id').value;
+    if (dryerId) {
+        localStorage.setItem('selected_dryer_id', dryerId);
+        // Panggil fetchSensorData untuk memperbarui data berdasarkan dryer_id
+        fetchSensorData(null); // null untuk processId karena kita ingin data terbaru
+        updateSidebar(); // Perbarui sidebar jika diperlukan
+    } else {
+        localStorage.removeItem('selected_dryer_id');
+        resetUI(); // Reset UI jika tidak ada dryer_id yang dipilih
+    }
+};
+
+// Modifikasi fetchSensorData untuk selalu menggunakan dryer_id
+async function fetchSensorData(processId = null, retries = MAX_RETRIES) {
     const userId = {{ auth()->id() }};
-    const url = processId
-        ? `${baseUrl}/get_sensor/realtime?user_id=${userId}&process_id=${processId}`
-        : `${baseUrl}/get_sensor/realtime?user_id=${userId}`;
+    const dryerId = localStorage.getItem('selected_dryer_id') || '';
+    let url = `${baseUrl}/get_sensor/realtime?user_id=${userId}`;
+    if (processId) url += `&process_id=${processId}`;
+    if (dryerId) url += `&dryer_id=${dryerId}`; // Selalu sertakan dryer_id jika ada
 
     try {
         const response = await fetch(url, {
@@ -2013,8 +2048,13 @@ async function openPengadukModal() {
 
         const data = await response.json();
 
+        // Reset sensorDataByDevice untuk menghindari data lama dari dryer lain
+        sensorDataByDevice = {};
+
         if (data.sensors && data.sensors.data) {
             data.sensors.data.forEach(sensor => {
+                // Pastikan data sensor sesuai dengan dryer_id
+                if (dryerId && sensor.dryer_id !== dryerId) return; // Skip jika dryer_id tidak cocok
                 sensorDataByDevice[sensor.device_name] = {
                     kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
                     suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
@@ -2025,43 +2065,23 @@ async function openPengadukModal() {
             });
         }
 
-        // // 🔹 Update status pengaduk di card langsung dari field backend
-        // if (data.sensors && "latest_stirrer_status" in data.sensors) {
-        //     const statusText = (v) =>
-        //         (v === 1 || v === true || v === "Aktif")
-        //             ? "Aktif"
-        //             : (v === 0 || v === false || v === "Nonaktif")
-        //                 ? "Nonaktif"
-        //                 : "-";
+        // Perbarui status pengaduk
+        if (data.sensors && "latest_stirrer_status" in data.sensors) {
+            const statusVal = data.sensors.latest_stirrer_status;
+            const elText = document.getElementById("statusPengadukText");
+            const elIcon = document.querySelector("#cardPengaduk i");
 
-        //     document.getElementById("statusPengadukText").innerText =
-        //         statusText(data.sensors.latest_stirrer_status);
-        // }
+            const statusText = (v) =>
+                (v === 1 || v === true || v === "Aktif") ? "Aktif" :
+                (v === 0 || v === false || v === "Nonaktif") ? "Nonaktif" : "-";
 
-// 🔹 Update status pengaduk di card langsung dari field backend
-if (data.sensors && "latest_stirrer_status" in data.sensors) {
-    const statusVal = data.sensors.latest_stirrer_status;
-
-    const elText = document.getElementById("statusPengadukText");
-    const elIcon = document.querySelector("#cardPengaduk i");
-
-    const statusText = (v) =>
-        (v === 1 || v === true || v === "Aktif")
-            ? "Aktif"
-            : (v === 0 || v === false || v === "Nonaktif")
-                ? "Nonaktif"
-                : "-";
-
-    // Update teks status
-    elText.innerText = statusText(statusVal);
-
-    // Update animasi icon
-    if (statusVal === 1 || statusVal === true || statusVal === "Aktif") {
-        elIcon.classList.add("fa-spin");   // 🔄 icon muter
-    } else {
-        elIcon.classList.remove("fa-spin"); // ❌ stop muter
-    }
-}
+            elText.innerText = statusText(statusVal);
+            if (statusVal === 1 || statusVal === true || statusVal === "Aktif") {
+                elIcon.classList.add("fa-spin");
+            } else {
+                elIcon.classList.remove("fa-spin");
+            }
+        }
 
         updateUI(data);
         updateModalForm(data.sensors);
@@ -2087,42 +2107,66 @@ if (data.sensors && "latest_stirrer_status" in data.sensors) {
     }
 }
 
-        function updateUI(data) {
-            const dryingProcess = data.drying_process;
+// Perbarui startSensorMonitoring untuk menggunakan dryer_id
+function startSensorMonitoring(processId) {
+    if (sensorInterval) clearInterval(sensorInterval);
+    sensorInterval = setInterval(() => {
+        fetchSensorData(processId).then(data => {
             const sensors = data.sensors || {};
-
-            // --- Set nilai sensor ---
-            kadarAirText.innerText = (typeof sensors.avg_grain_moisture === 'number') ?
-                `${sensors.avg_grain_moisture.toFixed(2)}%` : '0.00%';
-            suhuGabahText.innerText = (typeof sensors.avg_grain_temperature === 'number') ?
-                `${sensors.avg_grain_temperature.toFixed(2)}°C` : '0.00°C';
-            suhuRuanganText.innerText = (typeof sensors.avg_room_temperature === 'number') ?
-                `${sensors.avg_room_temperature.toFixed(2)}°C` : '0.00°C';
-            suhuPembakaranText.innerText = (typeof sensors.avg_combustion_temperature === 'number') ?
-                `${sensors.avg_combustion_temperature.toFixed(2)}°C` :
-                (sensors.avg_combustion_temperature === null ? 'Data tidak tersedia' : '0.00°C');
-
-            // --- Logika per-user ongoing ---
-            if (dryingProcess && dryingProcess.status === 'ongoing') {
-                // Kalau proses milik user login sedang jalan
-                statusText.innerText = 'Aktif';
-                toggleButton.innerText = 'STOP';
-                toggleButton.removeAttribute('data-bs-toggle');
-                toggleButton.removeAttribute('data-bs-target');
-                toggleButton.onclick = () => showConfirmStopModal(dryingProcess.process_id);
-                durasiText.innerText = formatDuration(dryingProcess.durasi_rekomendasi);
-                if (!sensorInterval) startSensorMonitoring(dryingProcess.process_id);
-            } else {
-                // Kalau user login tidak sedang menjalankan proses
-                statusText.innerText = 'Nonaktif';
-                toggleButton.innerText = 'START';
-                toggleButton.setAttribute('data-bs-toggle', 'modal');
-                toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
-                toggleButton.onclick = null;
-                durasiText.innerText = '0 menit';
-                if (!sensorInterval) startSensorMonitoring(null);
+            const dryingProcess = data.drying_process;
+            if (dryingProcess && dryingProcess.status === 'ongoing' && sensors.target_moisture_achieved) {
+                completeProcess(dryingProcess.process_id);
+                clearInterval(sensorInterval);
+                sensorInterval = null;
             }
-        }
+        }).catch(() => {});
+    }, POLLING_INTERVAL);
+}
+
+        function updateUI(data) {
+    const dryingProcess = data.drying_process;
+    const sensors = data.sensors || {};
+
+    // Pastikan data sesuai dengan dryer_id yang dipilih
+    const dryerId = localStorage.getItem('selected_dryer_id') || '';
+    if (dryerId && dryingProcess && dryingProcess.dryer_id !== dryerId) {
+        // Jika drying_process tidak sesuai dengan dryer_id yang dipilih, reset UI
+        resetUI();
+        return;
+    }
+
+    // --- Set nilai sensor ---
+    kadarAirText.innerText = (typeof sensors.avg_grain_moisture === 'number') ?
+        `${sensors.avg_grain_moisture.toFixed(2)}%` : '0.00%';
+    suhuGabahText.innerText = (typeof sensors.avg_grain_temperature === 'number') ?
+        `${sensors.avg_grain_temperature.toFixed(2)}°C` : '0.00°C';
+    suhuRuanganText.innerText = (typeof sensors.avg_room_temperature === 'number') ?
+        `${sensors.avg_room_temperature.toFixed(2)}°C` : '0.00°C';
+    suhuPembakaranText.innerText = (typeof sensors.avg_combustion_temperature === 'number') ?
+        `${sensors.avg_combustion_temperature.toFixed(2)}°C` :
+        (sensors.avg_combustion_temperature === null ? 'Data tidak tersedia' : '0.00°C');
+
+    // --- Logika per-user ongoing ---
+    if (dryingProcess && dryingProcess.status === 'ongoing' && dryingProcess.dryer_id === dryerId) {
+        // Kalau proses milik user login sedang jalan dan sesuai dryer_id
+        statusText.innerText = 'Aktif';
+        toggleButton.innerText = 'STOP';
+        toggleButton.removeAttribute('data-bs-toggle');
+        toggleButton.removeAttribute('data-bs-target');
+        toggleButton.onclick = () => showConfirmStopModal(dryingProcess.process_id);
+        durasiText.innerText = formatDuration(dryingProcess.durasi_rekomendasi);
+        if (!sensorInterval) startSensorMonitoring(dryingProcess.process_id);
+    } else {
+        // Kalau user login tidak sedang menjalankan proses atau dryer_id tidak cocok
+        statusText.innerText = 'Nonaktif';
+        toggleButton.innerText = 'START';
+        toggleButton.setAttribute('data-bs-toggle', 'modal');
+        toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
+        toggleButton.onclick = null;
+        durasiText.innerText = '0 menit';
+        if (!sensorInterval) startSensorMonitoring(null);
+    }
+}
 
         function resetUI() {
             statusText.innerText = 'Nonaktif';
@@ -2255,30 +2299,37 @@ if (data.sensors && "latest_stirrer_status" in data.sensors) {
             document.getElementById('modal')?.classList.add('hidden');
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            statusText = document.getElementById('statusText');
-            kadarAirText = document.getElementById('kadarAirText');
-            suhuGabahText = document.getElementById('suhuGabahText');
-            suhuRuanganText = document.getElementById('suhuRuanganText');
-            suhuPembakaranText = document.getElementById('suhuPembakaranText');
-            durasiText = document.getElementById('durasiText');
-            toggleButton = document.getElementById('toggleButton');
-            suhuGabahInput = document.getElementById('suhu_gabah');
-            suhuRuanganInput = document.getElementById('suhu_ruangan');
-            kadarAirGabahInput = document.getElementById('kadar_air_gabah');
-            suhuPembakaranInput = document.getElementById('suhu_pembakaran');
+        document.addEventListener('DOMContentLoaded', function () {
+    statusText = document.getElementById('statusText');
+    kadarAirText = document.getElementById('kadarAirText');
+    suhuGabahText = document.getElementById('suhuGabahText');
+    suhuRuanganText = document.getElementById('suhuRuanganText');
+    suhuPembakaranText = document.getElementById('suhuPembakaranText');
+    durasiText = document.getElementById('durasiText');
+    toggleButton = document.getElementById('toggleButton');
+    suhuGabahInput = document.getElementById('suhu_gabah');
+    suhuRuanganInput = document.getElementById('suhu_ruangan');
+    kadarAirGabahInput = document.getElementById('kadar_air_gabah');
+    suhuPembakaranInput = document.getElementById('suhu_pembakaran');
 
-            let initialPollInterval = setInterval(() => {
-                fetchSensorData().then(data => {
-                    if (data.sensors && typeof data.sensors.avg_combustion_temperature ===
-                        'number') {
-                        clearInterval(initialPollInterval);
-                    }
-                });
-            }, INITIAL_POLLING_INTERVAL);
+    // Inisialisasi dryer_id dari localStorage
+    const savedDryerId = localStorage.getItem('selected_dryer_id');
+    if (savedDryerId) {
+        document.getElementById('dryer_id').value = savedDryerId;
+        fetchSensorData(null); // Ambil data untuk dryer_id yang tersimpan
+        updateSidebar();
+    }
 
-            document.getElementById('tambahDataModal').addEventListener('show.bs.modal', () => fetchSensorData());
+    let initialPollInterval = setInterval(() => {
+        fetchSensorData().then(data => {
+            if (data.sensors && typeof data.sensors.avg_combustion_temperature === 'number') {
+                clearInterval(initialPollInterval);
+            }
         });
+    }, INITIAL_POLLING_INTERVAL);
+
+    document.getElementById('tambahDataModal').addEventListener('show.bs.modal', () => fetchSensorData());
+});
 
         // === SUBMIT PREDIKSI ===
         document.getElementById('predictForm').addEventListener('submit', async function(e) {
