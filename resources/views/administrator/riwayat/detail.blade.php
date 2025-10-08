@@ -23,7 +23,9 @@
 
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 style="font-size: 16px; margin-top: 20px;">Data Sensor</h5>
-        <button id="toggleMoreBtn" class="btn btn-sm btn-outline-primary">Lihat Selengkapnya</button>
+        <button id="toggleMoreBtn" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-chevron-down me-1"></i>Lihat Selengkapnya
+        </button>
     </div>
 
     <div id="sensor-data"></div>
@@ -35,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const processId = '{{ $process_id }}';
     const apiBaseUrl = "{{ config('services.api.base_url') }}";
     const token = "{{ session('sanctum_token') }}";
+    const toggleMoreBtn = document.getElementById('toggleMoreBtn');
 
     if (!token) {
         document.getElementById('sensor-data').innerHTML = '<p class="text-danger">Sesi login tidak ditemukan. Silakan <a href="/login">login kembali</a>.</p>';
@@ -98,55 +101,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit' // <-- Perbaikan di sini
+                second: '2-digit'
             });
+
+            const hasTombak = item.has_tombak;
+const hasPembakaran = item.has_pembakaran;
+
+let detailsHtml = '';
+
+if (hasPembakaran) {
+    detailsHtml += `
+        <h6 class="mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Pembakaran & Pengaduk</h6>
+        <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-fire me-2"></i>Suhu Pembakaran:</span>
+            <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.suhu_pembakaran !== '-' ? pembakaranData.suhu_pembakaran + ' °C' : '-'}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-repeat me-2"></i>Status Pengaduk:</span>
+            <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.status_pengaduk}</span>
+        </div>
+    `;
+}
+
+if (hasTombak) {
+    detailsHtml += `
+        <h6 class="fw-bold mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Tombak 1</h6>
+        <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-thermometer-sun me-2"></i>Suhu Ruangan:</span>
+            <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_ruangan !== '-' ? tombak.suhu_ruangan + ' °C' : '-'}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-droplet-half me-2"></i>Kadar Air Gabah:</span>
+            <span style="font-weight: 800; color: #1E3B8A">${tombak.kadar_air_gabah !== '-' ? tombak.kadar_air_gabah + ' %' : '-'}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+            <span><i class="bi bi-thermometer-high me-2"></i>Suhu Gabah:</span>
+            <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_gabah !== '-' ? tombak.suhu_gabah + ' °C' : '-'}</span>
+        </div>
+    `;
+}
 
             const collapseId = `collapseInterval${index + 1}`;
             const html = `
-                <div class="card shadow-sm mb-3" style="background-color: rgb(127 144 190 / 16%); border: 1px solid #d0d4df; border-radius: 15px">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center toggle-header"
-                            data-bs-toggle="collapse" href="#${collapseId}" role="button" aria-expanded="false"
-                            aria-controls="${collapseId}" style="cursor: pointer;">
-                            <div>
-                                <h6 style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important; margin-bottom: 12px;">
-                                    Interval ${index + 1}</h6>
-                                <div><i class="bi bi-droplet me-2"></i>Kadar Air Gabah (rata-rata): <span class="fw-bold">
-                                    ${kadarAirRata}</span></div>
-                            </div>
-                            <i class="bi bi-chevron-right toggle-icon" style="font-size: 15px;"></i>
-                        </div>
-                        <div class="collapse mt-3" id="${collapseId}">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="bi bi-clock-history me-2"></i>Timestamp:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${timestamp}</span>
-                            </div>
-                            <h6 class="mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Pembakaran & Pengaduk</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="bi bi-fire me-2"></i>Suhu Pembakaran:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.suhu_pembakaran !== '-' ? pembakaranData.suhu_pembakaran + ' °C' : '-'}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="bi bi-repeat me-2"></i>Status Pengaduk:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${pembakaranData.status_pengaduk}</span>
-                            </div>
-                            <h6 class="fw-bold mt-3 mb-2" style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important;">Tombak 1</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="bi bi-thermometer-sun me-2"></i>Suhu Ruangan:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_ruangan !== '-' ? tombak.suhu_ruangan + ' °C' : '-'}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="bi bi-droplet-half me-2"></i>Kadar Air Gabah:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${tombak.kadar_air_gabah !== '-' ? tombak.kadar_air_gabah + ' %' : '-'}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span><i class="bi bi-thermometer-high me-2"></i>Suhu Gabah:</span>
-                                <span style="font-weight: 800; color: #1E3B8A">${tombak.suhu_gabah !== '-' ? tombak.suhu_gabah + ' °C' : '-'}</span>
-                            </div>
-                        </div>
-                    </div>
+    <div class="card shadow-sm mb-3" style="background-color: rgb(127 144 190 / 16%); border: 1px solid #d0d4df; border-radius: 15px">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center toggle-header"
+                data-bs-toggle="collapse" href="#${collapseId}" role="button" aria-expanded="false"
+                aria-controls="${collapseId}" style="cursor: pointer;">
+                <div>
+                    <h6 style="color: #1E3B8A; font-size: 17px; font-weight: 700 !important; margin-bottom: 12px;">
+                        Interval ${index + 1}</h6>
+                    <div><i class="bi bi-droplet me-2"></i>Kadar Air Gabah (rata-rata): <span class="fw-bold">
+                        ${kadarAirRata}</span></div>
                 </div>
-            `;
+                <i class="bi bi-chevron-right toggle-icon" style="font-size: 15px;"></i>
+            </div>
+            <div class="collapse mt-3" id="${collapseId}">
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="bi bi-clock-history me-2"></i>Timestamp:</span>
+                    <span style="font-weight: 800; color: #1E3B8A">${timestamp}</span>
+                </div>
+                ${detailsHtml}
+            </div>
+        </div>
+    </div>
+`;
+
 
             const container = index < 3 ? sensorDataContainer : extraIntervalsContainer;
             container.insertAdjacentHTML('beforeend', html);
@@ -173,11 +193,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('toggleMoreBtn').addEventListener('click', function() {
+    toggleMoreBtn.addEventListener('click', function() {
         const extra = document.getElementById('extra-intervals');
         const isHidden = extra.classList.contains('d-none');
         extra.classList.toggle('d-none');
-        this.textContent = isHidden ? 'Sembunyikan' : 'Lihat Selengkapnya';
+        if (isHidden) {
+            this.innerHTML = '<i class="bi bi-chevron-up me-1"></i>Sembunyikan';
+        } else {
+            this.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Lihat Selengkapnya';
+        }
     });
 });
 </script>

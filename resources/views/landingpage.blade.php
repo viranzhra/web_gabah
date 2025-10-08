@@ -480,8 +480,9 @@
                                         value="">
                                     <p class="mb-0"><strong>No. Struk:</strong> <span id="receipt-number">-</span>
                                     </p>
-                                    <p class="mb-0"><strong>Tanggal:</strong> <span id="receipt-date">-</span></p>
                                     <p class="mb-0"><strong>Waktu:</strong> <span id="receipt-time">-</span></p>
+                                    <p class="mb-0"><strong>Tanggal:</strong> <span id="receipt-date">-</span></p>
+                                    <p class="mb-0"><strong>No. Rekening Admin:</strong> <span>1234567890</span></p>
                                     <hr class="dashed-hr">
                                 </div>
 

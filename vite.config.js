@@ -8,4 +8,9 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: 'gabahapi.test',
+        port: 3000,
+        open: false,
+    },
 });

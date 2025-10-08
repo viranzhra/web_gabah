@@ -111,6 +111,12 @@
             color: #721c24;
             border-left: 5px solid #dc3545;
         }
+
+        #notification.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+        }
     </style>
 
     {{-- <h4 class="fw-semibold mb-3" style="margin-top: 10px;">Data Master</h4> --}}
@@ -250,242 +256,240 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-        function showNotification(type, title, message) {
-            var notification = document.getElementById('notification');
-            var titleEl = document.getElementById('notificationTitle');
-            var messageEl = document.getElementById('notificationMessage');
+    function showNotification(type, title, message) {
+        var notification = document.getElementById('notification');
+        var titleEl = document.getElementById('notificationTitle');
+        var messageEl = document.getElementById('notificationMessage');
 
-            notification.className = 'alert position-fixed top-0 end-0 m-4';
-            notification.style.display = 'flex';
+        notification.className = 'alert position-fixed top-0 end-0 m-4';
+        notification.style.display = 'flex';
 
-            if (type === 'success') {
-                notification.classList.add('success');
-            } else if (type === 'error') {
-                notification.classList.add('error');
-            }
-
-            titleEl.innerText = title;
-            messageEl.innerText = message;
-
-            setTimeout(function() {
-                notification.style.display = 'none';
-            }, 4000);
+        if (type === 'success') {
+            notification.classList.add('success');
+        } else if (type === 'error') {
+            notification.classList.add('error');
+        } else if (type === 'info') {
+            notification.classList.add('info'); // Add info class for empty data
         }
 
-        (function($) {
-            $(document).ready(function() {
-                const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/[\n\r]+/g, '').trim();
-                console.log('Sanctum Token:', sanctumToken ? 'Present' : 'Missing');
+        titleEl.innerText = title;
+        messageEl.innerText = message;
 
-                const table = $('#data-table').DataTable({
-                    processing: true,
-                    serverSide: false,
-                    ajax: {
-                        url: '{{ config('services.api.base_url') }}/jenis-gabah',
-                        type: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${sanctumToken}`,
-                            'Accept': 'application/json'
-                        },
-                        dataSrc: function(json) {
-                            console.log('AJAX Response:', json);
-                            if (json.error) {
-                                showNotification('error', 'Gagal!', json.error);
-                                return [];
-                            }
-                            return json.data || [];
-                        },
-                        error: function(xhr) {
-                            console.error('AJAX Error:', xhr);
-                            let errorMessage = 'Terjadi kesalahan saat memuat data.';
-                            if (xhr.status === 401) {
-                                errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
-                            } else if (xhr.status === 500) {
-                                errorMessage = 'Kesalahan server. Silakan coba lagi.';
-                            }
-                            showNotification('error', 'Gagal!', errorMessage);
-                            table.processing(false);
-                        }
+        setTimeout(function() {
+            notification.style.display = 'none';
+        }, 4000);
+    }
+
+    (function($) {
+        $(document).ready(function() {
+            const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/[\n\r]+/g, '').trim();
+            console.log('Sanctum Token:', sanctumToken ? 'Present' : 'Missing');
+
+            const table = $('#data-table').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: '{{ config('services.api.base_url') }}/jenis-gabah',
+                    type: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json'
                     },
-                    columns: [{
-                            data: null,
-                            render: function(data, type, row, meta) {
-                                return meta.row + meta.settings._iDisplayStart + 1;
-                            },
-                            className: 'text-center'
-                        },
-                        {
-                            data: 'nama_jenis',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'deskripsi',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                return `
-                                    <button class="btn btn-sm" style="border: none;" onclick="editData(${row.grain_type_id})">
-                                        <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
-                                    </button>
-                                    <button class="btn btn-sm" style="border: none;" onclick="confirmDelete(${row.grain_type_id})">
-                                        <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
-                                    </button>`;
-                            }
+                    dataSrc: function(json) {
+                        console.log('AJAX Response:', json);
+                        if (json.error) {
+                            showNotification('error', 'Gagal!', json.error);
+                            return [];
                         }
-                    ]
-                });
-
-                $('#tambahDataForm').on('submit', function(e) {
-                    e.preventDefault();
-                    let form = $(this);
-
-                    let data = {
-                        nama_jenis: $('#jenis_gabah').val(),
-                        deskripsi: $('#deskripsi').val(),
-                        _token: $('input[name="_token"]').val()
-                    };
-
-                    $.ajax({
-                        url: '{{ config('services.api.base_url') }}/jenis-gabah',
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${sanctumToken}`,
-                            'Accept': 'application/json'
-                        },
-                        data: JSON.stringify(data),
-                        contentType: 'application/json',
-                        success: function(response) {
-                            let modalElement = document.getElementById('tambahDataModal');
-                            let modalInstance = bootstrap.Modal.getInstance(modalElement) ||
-                                new bootstrap.Modal(modalElement);
-                            modalInstance.hide();
-
-                            table.ajax.reload(null, false);
-                            form[0].reset();
-                            showNotification('success', 'Berhasil!',
-                                'Data berhasil ditambahkan.');
-                        },
-                        error: function(xhr) {
-                            console.error('AJAX Error:', xhr);
-                            let errorMessage = xhr.responseJSON?.message ||
-                                'Gagal menambahkan data.';
-                            if (xhr.status === 401) {
-                                errorMessage =
-                                'Sesi telah berakhir. Silakan login kembali.';
-                            }
-                            showNotification('error', 'Gagal!', errorMessage);
+                        if (!json.data || json.data.length === 0) {
+                            showNotification('info', 'Informasi', 'Tidak ada data untuk ditampilkan.');
+                            return [];
                         }
-                    });
-                });
+                        return json.data;
+                    },
+                    error: function(xhr) {
+                        console.error('AJAX Error:', xhr);
+                        let errorMessage = 'Terjadi kesalahan saat memuat data.';
+                        if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        } else if (xhr.status === 500) {
+                            errorMessage = 'Kesalahan server. Silakan coba lagi.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                        table.processing(false);
+                    }
+                },
+                columns: [{
+                        data: null,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        },
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nama_jenis',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'deskripsi',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return `
+                                <button class="btn btn-sm" style="border: none;" onclick="editData(${row.grain_type_id})">
+                                    <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
+                                </button>
+                                <button class="btn btn-sm" style="border: none;" onclick="confirmDelete(${row.grain_type_id})">
+                                    <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
+                                </button>`;
+                        }
+                    }
+                ]
+            });
 
-                window.editData = function(id) {
+            $('#tambahDataForm').on('submit', function(e) {
+                e.preventDefault();
+                let form = $(this);
+
+                let data = {
+                    nama_jenis: $('#jenis_gabah').val(),
+                    deskripsi: $('#deskripsi').val(),
+                    _token: $('input[name="_token"]').val()
+                };
+
+                $.ajax({
+                    url: '{{ config('services.api.base_url') }}/jenis-gabah',
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json'
+                    },
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        let modalElement = document.getElementById('tambahDataModal');
+                        let modalInstance = bootstrap.Modal.getInstance(modalElement) ||
+                            new bootstrap.Modal(modalElement);
+                        modalInstance.hide();
+
+                        table.ajax.reload(null, false);
+                        form[0].reset();
+                        showNotification('success', 'Berhasil!', 'Data berhasil ditambahkan.');
+                    },
+                    error: function(xhr) {
+                        console.error('AJAX Error:', xhr);
+                        let errorMessage = xhr.responseJSON?.message || 'Gagal menambahkan data.';
+                        if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                    }
+                });
+            });
+
+            window.editData = function(id) {
+                $.ajax({
+                    url: `{{ config('services.api.base_url') }}/jenis-gabah/${id}`,
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json'
+                    },
+                    success: function(res) {
+                        $('#edit_jenis_gabah').val(res.data.nama_jenis);
+                        $('#edit_deskripsi').val(res.data.deskripsi);
+                        $('#editForm').data('id', id);
+
+                        var editModal = new bootstrap.Modal(document.getElementById('editDataModal'));
+                        editModal.show();
+                    },
+                    error: function(xhr) {
+                        console.error('AJAX Error:', xhr);
+                        let errorMessage = 'Gagal mengambil data.';
+                        if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                    }
+                });
+            };
+
+            $('#editForm').on('submit', function(e) {
+                e.preventDefault();
+                let id = $(this).data('id');
+                let data = {
+                    nama_jenis: $('#edit_jenis_gabah').val(),
+                    deskripsi: $('#edit_deskripsi').val(),
+                    _token: $('input[name="_token"]').val()
+                };
+
+                $.ajax({
+                    url: `{{ config('services.api.base_url') }}/jenis-gabah/${id}`,
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json'
+                    },
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    success: function() {
+                        var editModalEl = document.getElementById('editDataModal');
+                        var editModal = bootstrap.Modal.getInstance(editModalEl) ||
+                            new bootstrap.Modal(editModalEl);
+                        editModal.hide();
+                        $('#editForm')[0].reset(); // Reset the form
+                        table.ajax.reload(null, false);
+                        showNotification('success', 'Berhasil!', 'Data berhasil diperbarui.');
+                    },
+                    error: function(xhr) {
+                        console.error('AJAX Error:', xhr);
+                        let errorMessage = 'Gagal memperbarui data.';
+                        if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                    }
+                });
+            });
+
+            window.confirmDelete = function(id) {
+                let rowData = table.rows().data().toArray().find(item => item.grain_type_id === id);
+                $('#deleteItemName').text(rowData.nama_jenis);
+
+                var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                deleteModal.show();
+
+                $('#confirmDeleteBtn').off('click').on('click', function() {
                     $.ajax({
                         url: `{{ config('services.api.base_url') }}/jenis-gabah/${id}`,
-                        method: 'GET',
+                        method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${sanctumToken}`,
                             'Accept': 'application/json'
                         },
-                        success: function(res) {
-                            $('#edit_jenis_gabah').val(res.data.nama_jenis);
-                            $('#edit_deskripsi').val(res.data.deskripsi);
-                            $('#editForm').data('id', id);
-
-                            var editModal = new bootstrap.Modal(document.getElementById(
-                                'editDataModal'));
-                            editModal.show();
+                        success: function() {
+                            deleteModal.hide();
+                            table.ajax.reload(null, false);
+                            showNotification('success', 'Berhasil!', 'Data berhasil dihapus.');
                         },
                         error: function(xhr) {
                             console.error('AJAX Error:', xhr);
-                            let errorMessage = 'Gagal mengambil data.';
+                            let errorMessage = 'Gagal menghapus data.';
                             if (xhr.status === 401) {
                                 errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
                             }
-                            showNotification('error', 'Gagal!', errorMessage);
-                        }
-                    });
-                };
-
-                $('#editForm').on('submit', function(e) {
-                    e.preventDefault();
-                    let id = $(this).data('id');
-                    let data = {
-                        nama_jenis: $('#edit_jenis_gabah').val(),
-                        deskripsi: $('#edit_deskripsi').val(),
-                        _token: $('input[name="_token"]').val()
-                    };
-
-                    $.ajax({
-                        url: `{{ config('services.api.base_url') }}/jenis-gabah/${id}`,
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${sanctumToken}`,
-                            'Accept': 'application/json'
-                        },
-                        data: JSON.stringify(data),
-                        contentType: 'application/json',
-                        success: function() {
-                            var editModalEl = document.getElementById('editDataModal');
-                            var editModal = bootstrap.Modal.getInstance(editModalEl) ||
-                                new bootstrap.Modal(editModalEl);
-                            editModal.hide();
-
-                            table.ajax.reload(null, false);
-                            showNotification('success', 'Berhasil!',
-                                'Data berhasil diperbarui.');
-                        },
-                        error: function(xhr) {
-                            console.error('AJAX Error:', xhr);
-                            let errorMessage = 'Gagal memperbarui data.';
-                            if (xhr.status === 401) {
-                                errorMessage =
-                                'Sesi telah berakhir. Silakan login kembali.';
-                            }
+                            deleteModal.hide();
                             showNotification('error', 'Gagal!', errorMessage);
                         }
                     });
                 });
-
-                window.confirmDelete = function(id) {
-                    let rowData = table.rows().data().toArray().find(item => item.grain_type_id === id);
-                    $('#deleteItemName').text(rowData.nama_jenis);
-
-                    var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-                    deleteModal.show();
-
-                    $('#confirmDeleteBtn').off('click').on('click', function() {
-                        $.ajax({
-                            url: `{{ config('services.api.base_url') }}/jenis-gabah/${id}`,
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${sanctumToken}`,
-                                'Accept': 'application/json'
-                            },
-                            success: function() {
-                                deleteModal.hide();
-                                table.ajax.reload(null, false);
-                                showNotification('success', 'Berhasil!',
-                                    'Data berhasil dihapus.');
-                            },
-                            error: function(xhr) {
-                                console.error('AJAX Error:', xhr);
-                                let errorMessage = 'Gagal menghapus data.';
-                                if (xhr.status === 401) {
-                                    errorMessage =
-                                        'Sesi telah berakhir. Silakan login kembali.';
-                                }
-                                deleteModal.hide();
-                                showNotification('error', 'Gagal!', errorMessage);
-                            }
-                        });
-                    });
-                };
-            });
-        })(jQuery.noConflict(true));
-    </script>
+            };
+        });
+    })(jQuery.noConflict(true));
+</script>
 @endsection

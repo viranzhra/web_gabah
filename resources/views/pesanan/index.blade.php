@@ -46,13 +46,35 @@
             color: #721c24;
             border-left: 5px solid #dc3545;
         }
+        .status-pending {
+            color: #f1c40f; /* Kuning untuk Pending */
+            font-weight: bold;
+        }
+        .status-confirmed {
+            color: #28a745; /* Hijau untuk Confirmed */
+            font-weight: bold;
+        }
+        .status-cancelled {
+            color: #dc3545; /* Merah untuk Cancelled */
+            font-weight: bold;
+        }
+        .fa-eye, .fa-edit {
+            color: #1E3B8A; /* Warna ikon sama dengan custom-button */
+        }
+        .fa-eye:hover, .fa-edit:hover {
+            color: #163075; /* Warna hover sama dengan custom-button:hover */
+        }
     </style>
+
+    <!-- Tambahkan CDN Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <div id="notification" class="alert position-fixed top-0 end-0 m-4" style="z-index: 9999;">
         <div id="notificationTitle" style="font-weight: bold;"></div>
         <div id="notificationMessage"></div>
     </div>
 
+    <!-- DataTable Pesanan -->
     <div class="card mt-4">
         <div class="card-body">
             <h4 class="fw-semibold mb-3">Data Pemesanan Alat IoT</h4>
@@ -63,6 +85,7 @@
                         <tr>
                             <th class="text-center">No</th>
                             <th class="text-center">Nama Pelanggan</th>
+                            <th class="text-center">Email Pelanggan</th>
                             <th class="text-center">Paket</th>
                             <th class="text-center">Alamat</th>
                             <th class="text-center">Catatan</th>
@@ -76,9 +99,32 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <small class="text-muted"><b>Ket:</b> <em>pending</em> (belum dibalas), <em>confirmed</em> (sudah dibalas). || Akan dibalas melalui Email pengguna.</small>
         </div>
     </div>
 
+    <!-- DataTable Paket Harga -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h4 class="fw-semibold mb-3">Data Paket Harga</h4>
+            <br>
+            <div class="table-responsive" style="overflow-x: auto;">
+                <table class="table table-striped table-bordered" id="paketHargaTable">
+                    <thead class="text-center">
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th class="text-center">Nama Paket</th>
+                            <th class="text-center">Harga</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Status -->
     <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="max-width: 390px;">
             <div class="modal-content">
@@ -92,6 +138,35 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn custom-button" id="confirmStatusBtn">Ya</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Paket Harga -->
+    <div class="modal fade" id="editPaketModal" tabindex="-1" aria-labelledby="editPaketModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 390px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPaketModalLabel">Edit Paket Harga</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPaketForm">
+                        <input type="hidden" id="paketId">
+                        <div class="mb-3">
+                            <label for="namaPaket" class="form-label">Nama Paket</label>
+                            <input type="text" class="form-control" id="namaPaket" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hargaPaket" class="form-label">Harga (Rp)</label>
+                            <input type="number" class="form-control" id="hargaPaket" step="0.01" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    {{-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button> --}}
+                    <button type="button" class="btn custom-button" id="savePaketBtn">Update</button>
                 </div>
             </div>
         </div>
@@ -124,6 +199,14 @@
                 }, 4000);
             }
 
+            // ====== Fungsi Format Rupiah ======
+            function formatRupiah(angka) {
+                return 'Rp ' + parseFloat(angka).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
             // ====== Konfigurasi dasar ======
             const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/[\n\r]+/g, '').trim();
             const API_BASE = @json(config('services.api.base_url'));
@@ -131,9 +214,10 @@
             console.log('Sanctum Token:', sanctumToken ? 'Present' : 'Missing');
             console.log('Checking jQuery:', typeof $);
             console.log('Checking DataTable:', typeof $.fn.DataTable);
+            console.log('API Base URL:', API_BASE);
 
-            // ====== Inisialisasi DataTable (disederhanakan) ======
-            const table = $('#pesananTable').DataTable({
+            // ====== Inisialisasi DataTable Pesanan ======
+            const pesananTable = $('#pesananTable').DataTable({
                 processing: true,
                 serverSide: false,
                 ajax: {
@@ -143,7 +227,6 @@
                         'Authorization': `Bearer ${sanctumToken}`,
                         'Accept': 'application/json'
                     },
-                    // DataTables default property untuk mengambil array data
                     dataSrc: 'data',
                     error: function(xhr) {
                         console.error('AJAX Error:', xhr);
@@ -156,7 +239,7 @@
                             errorMessage = 'Gagal terhubung ke server. Periksa koneksi internet atau URL API.';
                         }
                         showNotification('error', 'Gagal!', errorMessage);
-                        table.processing(false);
+                        pesananTable.processing(false);
                     }
                 },
                 columns: [
@@ -168,6 +251,7 @@
                         }
                     },
                     { data: 'user_name', defaultContent: '-' },
+                    { data: 'user_email', defaultContent: '-' },
                     { data: 'paket_name', defaultContent: '-' },
                     { data: 'alamat', defaultContent: '-' },
                     { data: 'catatan', defaultContent: '-' },
@@ -176,17 +260,30 @@
                         className: 'text-center',
                         render: function(data) {
                             if (!data) return '-';
-                            // Pastikan absolut URL (opsional)
                             try {
                                 new URL(data);
-                                return `<a href="${data}" target="_blank" rel="noopener noreferrer">Lihat Bukti</a>`;
+                                return `<a href="${data}" target="_blank" rel="noopener noreferrer" title="Lihat Bukti"><i class="fas fa-eye"></i></a>`;
                             } catch (e) {
-                                return `<a href="${API_BASE.replace('/api','')}/${data.replace(/^\/+/,'')}" target="_blank" rel="noopener noreferrer">Lihat Bukti</a>`;
+                                return `<a href="${API_BASE.replace('/api','')}/${data.replace(/^\/+/,'')}" target="_blank" rel="noopener noreferrer" title="Lihat Bukti"><i class="fas fa-eye"></i></a>`;
                             }
                         }
                     },
                     { data: 'nomor_struk', defaultContent: '-' },
-                    { data: 'status', defaultContent: '-' },
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data === 'pending') {
+                                return `<span class="status-pending">Pending</span>`;
+                            } else if (data === 'confirmed') {
+                                return `<span class="status-confirmed">Confirmed</span>`;
+                            } else if (data === 'cancelled') {
+                                return `<span class="status-cancelled">Cancelled</span>`;
+                            } else {
+                                return '-';
+                            }
+                        }
+                    },
                     { data: 'created_at', defaultContent: '-' },
                     {
                         data: null,
@@ -195,42 +292,86 @@
                         className: 'text-center',
                         render: function(data, type, row) {
                             const s = row.status || '';
+                            if (s === 'cancelled') {
+                                return `<span>-</span>`;
+                            } else if (s === 'confirmed') {
+                                return `
+                                    <select class="status-select" onchange="confirmStatus(${row.id}, this.value)">
+                                        <option value="confirmed" selected>Confirmed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                `;
+                            } else {
+                                return `
+                                    <select class="status-select" onchange="confirmStatus(${row.id}, this.value)">
+                                        <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                `;
+                            }
+                        }
+                    }
+                ]
+            });
+
+            // ====== Inisialisasi DataTable Paket Harga ======
+            const paketHargaTable = $('#paketHargaTable').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: `${API_BASE}/paket-harga`,
+                    type: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json'
+                    },
+                    dataSrc: '',
+                    error: function(xhr) {
+                        console.error('AJAX Error:', xhr);
+                        let errorMessage = xhr.responseJSON?.message || 'Gagal memuat data paket harga.';
+                        if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        } else if (xhr.status === 405) {
+                            errorMessage = 'Metode HTTP tidak diizinkan. Pastikan endpoint API benar.';
+                        } else if (xhr.status === 0) {
+                            errorMessage = 'Gagal terhubung ke server. Periksa koneksi internet atau URL API.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                        paketHargaTable.processing(false);
+                    }
+                },
+                columns: [
+                    {
+                        data: null,
+                        className: 'text-center',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { data: 'nama_paket', defaultContent: '-' },
+                    {
+                        data: 'harga',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? formatRupiah(data) : '-';
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
                             return `
-                                <select class="status-select" onchange="confirmStatus(${row.id}, this.value)">
-                                    <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="confirmed" ${s === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-                                    <option value="cancelled" ${s === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                                </select>
+                                <a href="javascript:void(0)" onclick="editPaket(${row.id}, '${row.nama_paket}', ${row.harga})" title="Edit Paket"><i class="fas fa-edit"></i></a>
                             `;
                         }
                     }
-                ],
-                // language: {
-                //     "decimal": "",
-                //     "emptyTable": "Tidak ada data yang tersedia di tabel",
-                //     "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                //     "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
-                //     "infoFiltered": "(disaring dari _MAX_ total entri)",
-                //     "thousands": ",",
-                //     "lengthMenu": "Tampilkan _MENU_ entri",
-                //     "loadingRecords": "Memuat...",
-                //     "processing": "Memproses...",
-                //     "search": "Cari:",
-                //     "zeroRecords": "Tidak ada catatan yang cocok ditemukan",
-                //     "paginate": {
-                //         "first": "Pertama",
-                //         "last": "Terakhir",
-                //         "next": "Selanjutnya",
-                //         "previous": "Sebelumnya"
-                //     },
-                //     "aria": {
-                //         "sortAscending": ": aktifkan untuk mengurutkan kolom secara naik",
-                //         "sortDescending": ": aktifkan untuk mengurutkan kolom secara turun"
-                //     }
-                // }
+                ]
             });
 
-            // ====== Konfirmasi & Update Status ======
+            // ====== Konfirmasi & Update Status Pesanan ======
             window.confirmStatus = function(id, status) {
                 $('#statusPesananId').text(id);
                 $('#statusBaru').text(status);
@@ -252,7 +393,7 @@
                         },
                         success: function(response) {
                             statusModal.hide();
-                            table.ajax.reload(null, false);
+                            pesananTable.ajax.reload(null, false);
                             showNotification('success', 'Berhasil!', response.message || 'Status pesanan berhasil diperbarui.');
                         },
                         error: function(xhr) {
@@ -266,8 +407,60 @@
                 });
             };
 
+            // ====== Edit Paket Harga ======
+            window.editPaket = function(id, namaPaket, harga) {
+                $('#paketId').val(id);
+                $('#namaPaket').val(namaPaket);
+                $('#hargaPaket').val(harga);
+                var editModal = new bootstrap.Modal(document.getElementById('editPaketModal'));
+                editModal.show();
+            };
+
+            $('#savePaketBtn').on('click', function() {
+                const id = $('#paketId').val();
+                const namaPaket = $('#namaPaket').val();
+                const harga = $('#hargaPaket').val();
+
+                if (!namaPaket || !harga) {
+                    showNotification('error', 'Gagal!', 'Nama paket dan harga wajib diisi.');
+                    return;
+                }
+
+                $.ajax({
+                    url: `${API_BASE}/paket-harga/${id}`,
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${sanctumToken}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify({
+                        nama_paket: namaPaket,
+                        harga: parseFloat(harga)
+                    }),
+                    beforeSend: function() {
+                        console.log('PUT', `${API_BASE}/paket-harga/${id}`, '=>', { nama_paket: namaPaket, harga });
+                    },
+                    success: function(response) {
+                        var editModal = bootstrap.Modal.getInstance(document.getElementById('editPaketModal'));
+                        editModal.hide();
+                        paketHargaTable.ajax.reload(null, false);
+                        showNotification('success', 'Berhasil!', response.message || 'Data paket harga berhasil diperbarui.');
+                    },
+                    error: function(xhr) {
+                        console.error('Error Perbarui Paket:', xhr);
+                        let errorMessage = xhr.responseJSON?.message || 'Gagal memperbarui data paket harga.';
+                        if (xhr.status === 404) {
+                            errorMessage = 'Endpoint tidak ditemukan. Pastikan rute PUT /paket-harga/{id} sudah didefinisikan.';
+                        } else if (xhr.status === 401) {
+                            errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
+                        }
+                        showNotification('error', 'Gagal!', errorMessage);
+                    }
+                });
+            });
+
             // ====== Guard untuk skrip global "GET /api/login" ======
-            // Jika ada skrip global yang memanggil /api/login, nonaktifkan di halaman ini:
             window.__DISABLE_GLOBAL_LOGIN_PING__ = true;
         });
     })(jQuery.noConflict(true));

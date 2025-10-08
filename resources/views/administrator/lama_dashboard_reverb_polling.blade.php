@@ -34,75 +34,53 @@
     </style>
 
     <div id="content-container" class="p-6">
-        <!-- ===== DASHBOARD ADMINISTRATOR ===== -->
         <div id="admin-message">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">📊 Dashboard Administrator</h2>
-
+            <h2 class="text-xl font-bold mb-4">Dashboard Administrator</h2>
             <!-- === Row 1: 3 Card Utama === -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Total Mitra -->
-                <div class="bg-white shadow rounded-xl p-6 flex items-center gap-4 border">
-                    <div class="p-3 rounded-full bg-blue-100">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M17 20h5V4H2v16h5m10 0v-6h-4v6m0-6v-4h4v4" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-gray-600 text-sm">Total Mitra</h3>
-                        <p id="totalMitra" class="text-3xl font-bold text-blue-700">0</p>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card Total Mitra -->
+                <div class="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-gray-500 text-sm font-semibold">Total Mitra</h3>
+                    <p id="totalMitra" class="text-3xl font-bold text-blue-600 mt-2">0</p>
                 </div>
-
-                <!-- Mitra Sedang Proses -->
-                <div class="bg-white shadow rounded-xl p-6 border">
-                    <h3 class="text-gray-600 text-sm mb-3">Mitra Sedang Proses</h3>
-                    <ul id="mitraOngoingList" class="text-gray-800 list-disc list-inside text-sm max-h-24 overflow-y-auto">
+                <!-- Card Mitra Sedang Proses -->
+                <div class="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-gray-500 text-sm font-semibold">Mitra Sedang Proses</h3>
+                    <ul id="mitraOngoingList" class="mt-2 text-gray-800 list-disc list-inside text-sm">
                         <li>Memuat...</li>
                     </ul>
                 </div>
-
-                <!-- Total Alat -->
-                <div class="bg-white shadow rounded-xl p-6 flex items-center gap-4 border">
-                    <div class="p-3 rounded-full bg-green-100">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 6v6h4m6 6H6V6h12v12z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-gray-600 text-sm">Total Alat Terpasang</h3>
-                        <p id="totalAlat" class="text-3xl font-bold text-green-700">0</p>
-                    </div>
+                <!-- Card Total Alat Terpasang -->
+                <div class="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-gray-500 text-sm font-semibold">Total Alat Terpasang</h3>
+                    <p id="totalAlat" class="text-3xl font-bold text-green-600 mt-2">0</p>
                 </div>
             </div>
-
-            <!-- === Row 2: Tabel & Donut === -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Tabel Mitra -->
-                <div class="bg-white shadow rounded-xl p-6 border">
+            <!-- === Row 2: 2 Card Tambahan (Tabel & Donut) === -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <!-- Card: Daftar Alat & Mitra -->
+                <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 w-full">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-                        <h3 class="text-gray-700 font-semibold text-lg">📋 Daftar Alat & Mitra</h3>
+                        <h3 class="text-gray-700 font-semibold text-lg">Daftar Alat & Mitra</h3>
                         <input id="alatSearch" type="text" placeholder="Cari mitra..."
-                               class="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                            class="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
                     </div>
-                    <div class="overflow-auto rounded-lg border border-gray-200">
+                    <div class="overflow-auto rounded-lg border border-gray-100">
                         <table class="min-w-full text-sm">
-                            <thead class="bg-gray-100 sticky top-0 z-10">
+                            <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Mitra</th>
-                                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Aksi</th>
+                                    <th class="text-left px-4 py-2 font-semibold text-gray-600">Mitra</th>
+                                    <th class="text-left px-4 py-2 font-semibold text-gray-600">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="alatTableBody" class="divide-y divide-gray-100">
                                 <tr>
-                                    <td class="px-4 py-3 text-gray-500" colspan="2">Memuat...</td>
+                                    <td class="px-4 py-2 text-gray-500" colspan="2">Memuat...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-
                 <!-- Card: Donut Distribusi Alat per Mitra -->
                 <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 w-full flex flex-col">
                     <div class="flex flex-wrap items-center justify-between mb-3">
@@ -165,10 +143,8 @@
     </div>
 
     <script>
-        // Debugging: Log base URL dan token
+        // Debugging: Log base URL
         console.log('Base URL:', '{{ config('services.api.base_url') }}');
-        console.log('Sanctum Token:', '{{ $token ?? '' }}');
-        console.log('User Role:', '{{ $role ?? '' }}');
 
         // ===== Variabel dari controller web
         const sanctumToken = @json($token ?? '');
@@ -179,34 +155,15 @@
             const el = document.getElementById('error-message');
             el.textContent = message;
             el.style.display = 'block';
-            console.error('Error displayed:', message);
         }
-        function hideError() {
-            document.getElementById('error-message').style.display = 'none';
-        }
+        function hideError() { document.getElementById('error-message').style.display = 'none'; }
 
         function showSuccess(message) {
             const el = document.getElementById('success-message');
             el.textContent = message;
             el.style.display = 'block';
-            console.log('Success displayed:', message);
         }
-        function hideSuccess() {
-            document.getElementById('success-message').style.display = 'none';
-        }
-
-        // ===== Debounce untuk optimasi performa
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+        function hideSuccess() { document.getElementById('success-message').style.display = 'none'; }
 
         // ===== Charts
         function createGauge(canvasId, labelId, currentValue) {
@@ -234,28 +191,28 @@
         const burnChart = new Chart(burnCtx, {
             type: 'line',
             data: { labels: [], datasets: [{
-                label: 'Suhu Pembakaran',
+                label: 'Suhu Pembakaran', 
                 data: [],
-                borderColor: '#ef4444',
+                borderColor: '#ef4444', 
                 backgroundColor: 'rgb(246 200 200 / 20%)',
-                tension: 0.5,
-                fill: true,
-                pointRadius: 2,
+                tension: 0.5, 
+                fill: true, 
+                pointRadius: 2, 
                 pointHoverRadius: 5,
                 spanGaps: true
             }]},
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, 
+                maintainAspectRatio: false, 
                 animation: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        mode: 'index',
+                    tooltip: { 
+                        mode: 'index', 
                         intersect: false,
-                        callbacks: {
+                        callbacks: { 
                             label: (ctx) => {
-                                const v = Number(ctx.parsed.y);
+                                const v = Number(ctx.parsed.y); 
                                 return 'Suhu: ' + (Number.isFinite(v) ? v.toFixed(2) : '-') + '°C';
                             }
                         }
@@ -264,12 +221,12 @@
                 interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: { type: 'category', grid: { display: false } },
-                    y: {
-                        beginAtZero: false,
+                    y: { 
+                        beginAtZero: false, 
                         grid: { display: false },
-                        ticks: {
+                        ticks: { 
                             callback: (value) => {
-                                const v = Number(value);
+                                const v = Number(value); 
                                 return (Number.isFinite(v) ? v.toFixed(2) : value) + '°C';
                             }
                         }
@@ -282,29 +239,29 @@
         const moistureChart = new Chart(moistureCtx, {
             type: 'line',
             data: { labels: [], datasets: [{
-                label: 'Kadar Air (%)',
+                label: 'Kadar Air (%)', 
                 data: [],
-                borderColor: '#0ea5e9',
+                borderColor: '#0ea5e9', 
                 backgroundColor: 'rgb(177 226 248 / 20%)',
-                tension: 0.5,
-                fill: true,
-                pointRadius: 2,
+                tension: 0.5, 
+                fill: true, 
+                pointRadius: 2, 
                 pointHoverRadius: 5,
                 spanGaps: true
             }]},
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, 
+                maintainAspectRatio: false, 
                 animation: false,
-                plugins: {
-                    legend: { display: false },
+                plugins: { 
+                    legend: { display: false }, 
                     tooltip: { mode: 'index', intersect: false }
                 },
                 interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: { type: 'category', grid: { display: false } },
-                    y: {
-                        beginAtZero: false,
+                    y: { 
+                        beginAtZero: false, 
                         grid: { display: false },
                         ticks: { callback: (value) => value + '%' }
                     }
@@ -314,12 +271,10 @@
 
         // ===== Realtime state
         let chartData = [];
-        const DATA_UPDATE_INTERVAL = 5000; // Update setiap 5 detik jika event datang
+        const DATA_UPDATE_INTERVAL = 5000; // Update setiap 5 detik
         const MAX_DATA_POINTS = 10; // 10 data terakhir untuk grafik
         let lastUpdateTime = 0;
         let rafPending = false;
-        let currentProcessId = null;
-        let latestSensorData = {}; // Menyimpan data terbaru per device_id
 
         function calculateYScale(data, key, minDefault, maxDefault, marginPercent = 0.1) {
             if (!data || data.length === 0) return { min: minDefault, max: maxDefault };
@@ -342,20 +297,19 @@
             });
         }
 
-        const debouncedUpdateCharts = debounce(updateCharts, 100);
-
         function updateCharts() {
             const labels = chartData.map(d => d.time);
             let burnData = chartData.map(d => d.burn);
             let moistureData = chartData.map(d => d.moisture);
 
+            // Isi data yang null dengan nilai terakhir yang valid
             burnData = fillMissingData(chartData, 'burn');
             moistureData = fillMissingData(chartData, 'moisture');
 
-            console.log('Chart Data:', chartData);
+            console.log('Chart Data:', chartData); // Debugging: Log data grafik
             console.log('Burn Data:', burnData);
             console.log('Moisture Data:', moistureData);
-            console.log('Labels:', labels);
+            console.log('Labels:', labels); // Debugging: Log labels waktu
 
             const burnScale = calculateYScale(chartData, 'burn', 180, 350, 0.1);
             const moistureScale = calculateYScale(chartData, 'moisture', 0, 30, 0.1);
@@ -376,7 +330,6 @@
                     burnChart.update('none');
                     moistureChart.update('none');
                     rafPending = false;
-                    console.log('Charts updated');
                 });
             }
 
@@ -389,55 +342,15 @@
             if (typeof Echo === 'undefined') {
                 console.error('Echo not loaded. Pastikan app.js diinclude di layout.');
                 showError('Gagal memuat WebSocket. Coba refresh halaman.');
-                setTimeout(() => startWebSocket(processId), 5000);
+                setTimeout(() => startWebSocket(processId), 1000);
                 return;
             }
-
-            // Jika processId berubah, hentikan listener sebelumnya
-            if (currentProcessId && currentProcessId !== processId) {
-                console.log(`Stopping WebSocket for old channel: drying-process.${currentProcessId}`);
-                window.Echo.leave(`drying-process.${currentProcessId}`);
-            }
-
-            currentProcessId = processId;
             console.log('Starting WebSocket for channel:', `drying-process.${processId}`);
-
-            window.Echo.private(`drying-process.${processId}`)
-                .subscribed(() => console.log(`✅ SUBSCRIBED to drying-process.${processId}`))
+            Echo.private(`drying-process.${processId}`)
                 .listen('.sensor-updated', (event) => {
-                    console.log("📡 Event received:", event);
+                    console.log('WebSocket event received:', event);
                     const data = event;
                     const now = Date.now();
-
-                    // Simpan data terbaru per device_id, termasuk status_pengaduk baru
-                    latestSensorData[data.device_id] = {
-                        timestamp: data.timestamp,
-                        suhu_pembakaran: parseFloat(data.suhu_pembakaran) || null,
-                        kadar_air_gabah: parseFloat(data.kadar_air_gabah) || null,
-                        suhu_gabah: parseFloat(data.suhu_gabah) || null,
-                        suhu_ruangan: parseFloat(data.suhu_ruangan) || null,
-                        status_pengaduk: data.status_pengaduk || null, // Tambah field baru
-                        process_id: data.process_id || processId
-                    };
-
-                    // Hitung rata-rata untuk gauge
-                    const devices = Object.values(latestSensorData);
-                    const validGrainTemps = devices.map(d => d.suhu_gabah).filter(v => Number.isFinite(v));
-                    const validRoomTemps = devices.map(d => d.suhu_ruangan).filter(v => Number.isFinite(v));
-                    const avgGrainTemp = validGrainTemps.length > 0 ? validGrainTemps.reduce((a, b) => a + b, 0) / validGrainTemps.length : null;
-                    const avgRoomTemp = validRoomTemps.length > 0 ? validRoomTemps.reduce((a, b) => a + b, 0) / validRoomTemps.length : null;
-
-                    // Update gauge
-                    if (avgGrainTemp != null && Number.isFinite(avgGrainTemp)) {
-                        grainTempGauge.set(avgGrainTemp);
-                        document.getElementById('grainTempValue').textContent = avgGrainTemp.toFixed(2) + '°C';
-                    }
-                    if (avgRoomTemp != null && Number.isFinite(avgRoomTemp)) {
-                        roomTempGauge.set(avgRoomTemp);
-                        document.getElementById('roomTempValue').textContent = avgRoomTemp.toFixed(2) + '°C';
-                    }
-
-                    // Update chart data jika interval terpenuhi
                     if (now - lastUpdateTime >= DATA_UPDATE_INTERVAL) {
                         lastUpdateTime = now;
                         const newData = {
@@ -445,54 +358,44 @@
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 second: '2-digit',
+                                millisecond: '3-digit',
                                 timeZone: 'Asia/Jakarta'
                             }),
                             timestamp: data.timestamp,
-                            burn: devices.map(d => d.suhu_pembakaran).filter(v => Number.isFinite(v))[0] || null,
-                            moisture: devices.map(d => d.kadar_air_gabah).filter(v => Number.isFinite(v))[0] || null,
-                            grainTemp: avgGrainTemp,
-                            roomTemp: avgRoomTemp,
-                            processId: data.process_id || processId
+                            burn: parseFloat(data.suhu_pembakaran) || null,
+                            moisture: parseFloat(data.kadar_air_gabah) || null
                         };
 
                         // Cek duplikasi timestamp
                         const existing = chartData.find(d => d.timestamp === data.timestamp);
                         if (!existing) {
                             chartData.push(newData);
-                            chartData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                            chartData = chartData.slice(-MAX_DATA_POINTS);
-                            debouncedUpdateCharts();
-                        }
-
-                        showSuccess('Sedang ada proses pengeringan berlangsung');
-                        hideError();
-
-                        // Jika process_id baru, mulai WebSocket baru
-                        if (data.process_id && data.process_id !== currentProcessId) {
-                            console.log(`New process_id detected: ${data.process_id}`);
-                            startWebSocket(data.process_id);
+                            chartData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Urutkan dari terlama ke terbaru
+                            chartData = chartData.slice(-MAX_DATA_POINTS); // Ambil 10 data terakhir
+                            updateCharts();
                         }
                     }
                 })
                 .error((error) => {
                     console.error('WebSocket Error:', error);
-                    showError('Gagal terhubung ke WebSocket: ' + (error.message || JSON.stringify(error)));
-                    setTimeout(() => startWebSocket(processId), 5000); // Retry tanpa polling
+                    showError('Gagal terhubung ke WebSocket: ' + error.message);
+                    setTimeout(() => startWebSocket(processId), 5000);
                 });
         }
 
-        // Fetch data awal (sekali saja, bukan polling)
-        function fetchInitialData() {
+        // ===== Ambil data sensor awal dan polling
+        function connectToApi() {
             const baseUrl = '{{ config('services.api.base_url') }}';
             const endpoint = baseUrl.endsWith('/') ? `${baseUrl}get_sensor/realtime` : `${baseUrl}/get_sensor/realtime`;
-            console.log('Fetching initial data from:', endpoint);
+            console.log('Fetching from:', endpoint);
             fetch(endpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${sanctumToken}`,
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                redirect: 'manual'
             })
             .then(res => {
                 if (!res.ok) {
@@ -504,17 +407,15 @@
                 return res.json();
             })
             .then(data => {
-                console.log('Initial API Response:', data);
-                const processId = data.drying_process?.process_id || 'default';
-
+                console.log('API Response:', data);
                 if (!data.sensors || !data.drying_process) {
-                    showError(data.message || data.error || 'Tidak ada proses pengeringan aktif. Menunggu data dari WebSocket...');
+                    showError(data.message || data.error || 'Tidak ada proses pengeringan aktif.');
                     hideSuccess();
-                    startWebSocket(processId);
+                    setTimeout(connectToApi, 10000);
                     return;
                 }
 
-                // Update gauge dengan rata-rata awal
+                // Update gauge dengan rata-rata
                 if (data.sensors.avg_grain_temperature != null) {
                     const v = parseFloat(data.sensors.avg_grain_temperature);
                     if (Number.isFinite(v)) {
@@ -530,75 +431,63 @@
                     }
                 }
 
-                // Update chart dengan 10 data terakhir awal
+                // Update chart dengan 10 data terakhir
                 chartData = (data.sensors.data || [])
-                    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-                    .slice(-MAX_DATA_POINTS)
+                    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) // Urutkan dari terlama ke terbaru
+                    .slice(-MAX_DATA_POINTS) // Ambil 10 data terakhir
                     .map(item => ({
                         time: new Date(item.timestamp).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
                             minute: '2-digit',
                             second: '2-digit',
+                            millisecond: '3-digit',
                             timeZone: 'Asia/Jakarta'
                         }),
                         timestamp: item.timestamp,
                         burn: parseFloat(item.suhu_pembakaran) || null,
-                        moisture: parseFloat(item.kadar_air_gabah) || null,
-                        grainTemp: parseFloat(item.suhu_gabah) || null,
-                        roomTemp: parseFloat(item.suhu_ruangan) || null,
-                        processId: processId
+                        moisture: parseFloat(item.kadar_air_gabah) || null
                     }));
 
-                console.log('Initial Chart Data:', chartData);
-                debouncedUpdateCharts();
+                console.log('Initial Chart Data:', chartData); // Debugging: Log data awal
+
+                updateCharts();
                 showSuccess(data.message || 'Sedang ada proses pengeringan berlangsung');
                 hideError();
 
-                // Mulai WebSocket setelah initial data
-                startWebSocket(processId);
+                // Mulai WebSocket untuk pembaruan real-time
+                startWebSocket(data.drying_process.process_id);
+
+                // Polling setiap 10 detik untuk update rata-rata dan data grafik
+                setTimeout(connectToApi, 10000);
             })
             .catch((error) => {
-                console.error('Error fetching initial sensor data:', error);
-                showError('Gagal mengambil data sensor awal: ' + error.message + '. Menunggu data dari WebSocket...');
+                console.error('Error fetching sensor data:', error);
+                showError('Gagal mengambil data sensor: ' + error.message);
                 hideSuccess();
-                startWebSocket('default');
+                setTimeout(connectToApi, 10000);
             });
         }
 
         // ===== Cek role user
         function checkUserRole() {
             if (!sanctumToken) {
-                console.error('No sanctum token found, redirecting to login');
                 showError('Silakan login terlebih dahulu');
-                setTimeout(() => {
-                    window.location.href = '{{ route("login") }}';
-                }, 2000);
+                window.location.href = '{{ route("login") }}';
                 return;
             }
             if (String(userRole).toLowerCase() === 'administrator') {
-                console.log('User is administrator, showing admin dashboard');
                 document.getElementById('admin-message').style.display = 'block';
                 document.getElementById('dashboard-grid').style.display = 'none';
             } else {
-                console.log('User is non-administrator, showing sensor dashboard');
                 document.getElementById('admin-message').style.display = 'none';
                 document.getElementById('dashboard-grid').style.display = 'grid';
-                fetchInitialData();
+                connectToApi();
             }
         }
 
-        // ===== Admin Dashboard Scripts (tetap statis, tanpa WebSocket)
+        // ===== Admin Dashboard Scripts
         document.addEventListener("DOMContentLoaded", function() {
             const token = localStorage.getItem('token') || sanctumToken;
-            if (!token) {
-                console.error('No token found for admin summary, redirecting to login');
-                showError('Silakan login terlebih dahulu');
-                setTimeout(() => {
-                    window.location.href = '{{ route("login") }}';
-                }, 2000);
-                return;
-            }
-
             const url = '{{ config("services.api.base_url") }}/dashboard/admin-summary';
             console.log('Fetching admin summary from:', url);
 
@@ -663,15 +552,15 @@
                     tr.innerHTML = `
                         <td class="px-3 py-2 font-medium text-gray-800">${mitra}</td>
                         <td class="px-3 py-2">
-                            <button class="text-blue-600 hover:text-blue-800"
-                                    title="Lihat Detail"
+                            <button class="text-blue-600 hover:text-blue-800" 
+                                    title="Lihat Detail" 
                                     onclick="showDetail('${mitra.replace(/'/g, "\\'")}')">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     class="w-5 h-5 inline-block" fill="none"
+                                <svg xmlns="http://www.w3.org/2000/svg" 
+                                     class="w-5 h-5 inline-block" fill="none" 
                                      viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                           d="M2.458 12C3.732 7.943 7.523 5 12 5
                                              c4.477 0 8.268 2.943 9.542 7
                                              -1.274 4.057-5.065 7-9.542 7

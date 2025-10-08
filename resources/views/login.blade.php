@@ -179,7 +179,7 @@
                             
                             // Redirect to landing page after a short delay
                             setTimeout(() => {
-                                window.location.href = '/';
+                                window.location.href = '/login';
                             }, 1000);
                         }
                     },

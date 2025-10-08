@@ -3,7 +3,6 @@
 @section('content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-{{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
 
 <style>
     .riwayat-card {
@@ -21,68 +20,68 @@
     .btn-clear:hover { background-color: #5a6268; }
 
     #notification {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 300px;
-            padding: 15px;
-            border-radius: 5px;
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
-            opacity: 0;
-            transition: opacity .5s
-        }
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 300px;
+        padding: 15px;
+        border-radius: 5px;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        opacity: 0;
+        transition: opacity .5s
+    }
 
-        #notification.success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 5px solid #28a745
-        }
+    #notification.success {
+        background: #d4edda;
+        color: #155724;
+        border-left: 5px solid #28a745
+    }
 
-        #notification.error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 5px solid #dc3545
-        }
+    #notification.error {
+        background: #f8d7da;
+        color: #721c24;
+        border-left: 5px solid #dc3545
+    }
 
-        #notification.visible {
-            display: flex;
-            opacity: 1
-        }
+    #notification.visible {
+        display: flex;
+        opacity: 1
+    }
 
-        #notificationTitle {
-            font-weight: bold;
-            margin-bottom: 5px
-        }
+    #notificationTitle {
+        font-weight: bold;
+        margin-bottom: 5px
+    }
 
-        #notificationMessage {
-            font-size: 14px
-        }
+    #notificationMessage {
+        font-size: 14px
+    }
 </style>
 
 <div class="container mt-4">
     <div id="notification" class="alert position-fixed top-0 end-0 m-4" style="display:none;">
-    <div id="notificationTitle" style="font-weight: bold;"></div>
-    <div id="notificationMessage"></div>
-</div>
+        <div id="notificationTitle" style="font-weight: bold;"></div>
+        <div id="notificationMessage"></div>
+    </div>
 
     <h2 class="fw-bold mb-3">Riwayat</h2>
 
     <div class="mb-3 d-flex align-items-end gap-2">
         <div>
             <label for="filterTanggal" class="form-label">Cari Tanggal:</label>
-            <input style="background-color:#ffff;" type="date" id="filterTanggal" class="form-control" style="max-width:300px;">
+            <input type="date" id="filterTanggal" class="form-control" style="max-width:300px; background-color:#fff;">
         </div>
-        <button id="clearFilter" class="btn btn-clear btn-sm" style="height:36px;">
+        <button id="clearFilter" class="btn btn-outline-secondary btn-sm" style="height:36px;">
             <i class="bi bi-x-circle me-1"></i> Reset
         </button>
     </div>
 
     <div class="mb-4 text-muted fw-semibold" id="currentDate">
-        {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
+        Hari ini tanggal {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
     </div>
 
     <div class="row" id="riwayatContainer"></div>
@@ -103,13 +102,14 @@
                 <div class="modal-body px-4">
                     <input type="hidden" name="process_id" id="processIdInput">
                     <div class="mb-3">
-                        <label for="beratAkhir" class="form-label fw-100">Berat Gabah Akhir (kg)</label>
-                        <input type="number" class="form-control" id="beratAkhir" name="berat_akhir" step="0.01" min="0" required>
-                        <div id="errorBeratAkhir" class="text-danger small mt-1"></div> <!-- Error di sini -->
+                        <label for="beratAkhir" class="form-label fw-semibold">Berat Gabah Akhir (kg)</label>
+                        <input type="number" class="form-control" id="beratAkhir" name="berat_gabah_akhir" step="0.01" min="0" required>
+                        <div id="errorBeratAkhir" class="text-danger small mt-1"></div>
                     </div>
                 </div>
                 <div class="modal-footer px-4 pb-4">
-                    <button type="submit" class="btn btn-simpan">
+                    {{-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button> --}}
+                    <button type="submit" class="btn btn-primary btn-simpan">
                         <i class="bi bi-check-circle me-1"></i> Simpan
                     </button>
                 </div>
@@ -132,20 +132,41 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterTanggalInput = document.getElementById('filterTanggal');
     const clearFilterButton = document.getElementById('clearFilter');
     const riwayatContainer = document.getElementById('riwayatContainer');
+    const currentDateElement = document.getElementById('currentDate');
+
+    // Debugging: Log token dan base URL
+    console.log('API Base URL:', apiBaseUrl);
+    console.log('Token:', token);
 
     // Set default filter ke hari ini
     filterTanggalInput.value = new Date().toISOString().split('T')[0];
 
-    // Event: ubah tanggal -> fetch
-    filterTanggalInput.addEventListener('change', fetchData);
+    // Fungsi untuk memperbarui teks currentDate
+    function updateCurrentDate(tanggal) {
+        if (tanggal) {
+            const selectedDate = new Date(tanggal);
+            currentDateElement.textContent = `Tanggal ${selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+        } else {
+            const today = new Date();
+            currentDateElement.textContent = `Hari ini tanggal ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+        }
+    }
+
+    // Event: ubah tanggal -> fetch dan perbarui currentDate
+    filterTanggalInput.addEventListener('change', function () {
+        updateCurrentDate(filterTanggalInput.value);
+        fetchData();
+    });
 
     // Event: reset -> kembali ke hari ini & fetch
     clearFilterButton.addEventListener('click', function () {
         filterTanggalInput.value = new Date().toISOString().split('T')[0];
+        updateCurrentDate(null);
         fetchData();
     });
 
     // Load awal
+    updateCurrentDate(null);
     fetchData();
 
     // Saat modal dibuka: set action & process_id
@@ -154,97 +175,135 @@ document.addEventListener('DOMContentLoaded', function () {
         const processId = button.getAttribute('data-process-id');
         inputProcessId.value = processId;
         form.action = `${apiBaseUrl}/validasi/${processId}`;
+        console.log('Form action:', form.action); // Debugging
     });
 
     form.addEventListener('submit', async function (event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    // Kosongkan pesan error dulu
-    document.getElementById('errorBeratAkhir').textContent = '';
+        // Kosongkan pesan error
+        document.getElementById('errorBeratAkhir').textContent = '';
 
-    if (!token) {
-        window.notify?.({
-            title: 'Sesi berakhir',
-            message: 'Sesi login tidak ditemukan. Kamu akan diarahkan ke halaman login.',
-            type: 'error',
-            duration: 3000
-        });
-        setTimeout(() => { window.location.href = '/login'; }, 3000);
-        return;
-    }
-
-    const beratAkhirInput = document.getElementById('beratAkhir');
-    const beratAkhir = parseFloat(beratAkhirInput.value);
-    const processId = inputProcessId.value;
-
-    // Ambil berat awal dari card (riwayatContainer)
-    const beratAwalEl = document.querySelector(
-        `.btn-validasi[data-process-id="${processId}"]`
-    )?.closest('.card')?.querySelector('.bi-box-seam')?.parentElement?.nextElementSibling?.textContent;
-
-    let beratAwal = null;
-    if (beratAwalEl) {
-        beratAwal = parseFloat(beratAwalEl.replace(/[^\d.]/g, '')); // Ambil angka saja
-    }
-
-    // Validasi di sisi client
-    if (beratAwal !== null && beratAkhir > beratAwal) {
-        document.getElementById('errorBeratAkhir').textContent =
-            `Berat gabah akhir tidak boleh lebih dari ${beratAwal} kg.`;
-        return;
-    }
-
-    const payload = {
-        process_id: processId,
-        berat_akhir: beratAkhir
-    };
-
-    try {
-        const response = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            // Kalau dari backend ada error validasi berat
-            if (result?.errors?.berat_akhir) {
-                document.getElementById('errorBeratAkhir').textContent =
-                    result.errors.berat_akhir.join(', ');
-                return;
-            }
-            throw new Error(result?.error || result?.pesan || 'Kesalahan server tidak diketahui');
+        if (!token) {
+            window.notify?.({
+                title: 'Sesi Berakhir',
+                message: 'Sesi login tidak ditemukan. Kamu akan diarahkan ke halaman login.',
+                type: 'error',
+                duration: 3000
+            });
+            setTimeout(() => { window.location.href = '/login'; }, 3000);
+            return;
         }
 
-        window.notify?.({
-            title: 'Berhasil',
-            message: 'Validasi berhasil disimpan!',
-            type: 'success',
-            duration: 2500,
-            reload: true
-        });
+        const beratAkhirInput = document.getElementById('beratAkhir');
+        const beratAkhir = parseFloat(beratAkhirInput.value);
+        const processId = inputProcessId.value;
 
-        fetchData();
+        // Validasi process_id
+        if (!processId || isNaN(processId)) {
+            window.notify?.({
+                title: 'Error',
+                message: 'ID proses tidak valid.',
+                type: 'error',
+                duration: 4000
+            });
+            return;
+        }
 
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        modalInstance?.hide();
-        form.reset();
+        // Ambil berat awal dari card
+        const beratAwalEl = document.querySelector(
+            `.btn-validasi[data-process-id="${processId}"]`
+        )?.closest('.card')?.querySelector('.berat-awal')?.textContent;
 
-    } catch (error) {
-        window.notify?.({
-            title: 'Gagal',
-            message: `Gagal menyimpan validasi: ${error.message}`,
-            type: 'error',
-            duration: 4000
-        });
-    }
-});
+        let beratAwal = null;
+        if (beratAwalEl) {
+            beratAwal = parseFloat(beratAwalEl.replace(/[^\d.]/g, ''));
+        }
+
+        // Validasi di sisi client
+        if (beratAwal !== null && beratAkhir > beratAwal) {
+            document.getElementById('errorBeratAkhir').textContent =
+                `Berat gabah akhir tidak boleh lebih dari ${beratAwal} kg.`;
+            return;
+        }
+
+        const payload = {
+            berat_gabah_akhir: beratAkhir
+        };
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            // Log respons mentah untuk debugging
+            const responseText = await response.text();
+            console.log('Response from POST /validasi:', responseText);
+
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (e) {
+                throw new Error('Respons server bukan JSON: ' + responseText);
+            }
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    window.notify?.({
+                        title: 'Proses Tidak Ditemukan',
+                        message: result?.message || 'Proses dengan ID tersebut tidak ada atau bukan status completed.',
+                        type: 'error',
+                        duration: 4000
+                    });
+                    return;
+                }
+                if (response.status === 401) {
+                    window.notify?.({
+                        title: 'Tidak Terautentikasi',
+                        message: 'Sesi login tidak valid. Silakan login kembali.',
+                        type: 'error',
+                        duration: 4000
+                    });
+                    setTimeout(() => { window.location.href = '/login'; }, 4000);
+                    return;
+                }
+                if (result?.errors?.berat_gabah_akhir) {
+                    document.getElementById('errorBeratAkhir').textContent =
+                        result.errors.berat_gabah_akhir.join(', ');
+                    return;
+                }
+                throw new Error(result?.message || 'Kesalahan server tidak diketahui');
+            }
+
+            window.notify?.({
+                title: 'Berhasil',
+                message: 'Validasi berhasil disimpan!',
+                type: 'success',
+                duration: 2500
+            });
+
+            fetchData();
+
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            modalInstance?.hide();
+            form.reset();
+
+        } catch (error) {
+            console.error('Error submitting validation:', error);
+            window.notify?.({
+                title: 'Gagal',
+                message: `Gagal menyimpan validasi: ${error.message}`,
+                type: 'error',
+                duration: 4000
+            });
+        }
+    });
 
     // Ambil data riwayat (dengan filter tanggal)
     async function fetchData() {
@@ -252,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Token Sanctum tidak ditemukan');
             riwayatContainer.innerHTML = '<p class="text-danger">Sesi login tidak ditemukan. Silakan <a href="/login">login kembali</a>.</p>';
             window.notify?.({
-                title: 'Sesi berakhir',
+                title: 'Sesi Berakhir',
                 message: 'Silakan login kembali.',
                 type: 'error',
                 duration: 3000
@@ -266,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const url = `${apiBaseUrl}/riwayat-proses${filterTanggal ? `?filter_tanggal=${filterTanggal}` : ''}`;
+            console.log('Fetching data from:', url); // Debugging
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -274,9 +334,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            // Log respons mentah untuk debugging
+            const responseText = await response.text();
+            console.log('Response from GET /riwayat-proses:', responseText);
 
-            const result = await response.json();
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (e) {
+                throw new Error('Respons server bukan JSON: ' + responseText);
+            }
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.notify?.({
+                        title: 'Tidak Terautentikasi',
+                        message: 'Sesi login tidak valid. Silakan login kembali.',
+                        type: 'error',
+                        duration: 4000
+                    });
+                    setTimeout(() => { window.location.href = '/login'; }, 4000);
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${result?.message || responseText}`);
+            }
+
             const data = result?.data || [];
             riwayatContainer.innerHTML = '';
 
@@ -291,37 +373,44 @@ document.addEventListener('DOMContentLoaded', function () {
             const colClass = data.length === 1 ? 'col-md-12' : (data.length === 2 ? 'col-md-6' : 'col-md-4');
 
             data.forEach(item => {
-                // Status tervalidasi: berdasar adanya berat_gabah_akhir
-                const isValidated = item.berat_gabah_akhir !== null && item.berat_gabah_akhir !== '';
+                // Status tervalidasi: berdasarkan berat_gabah_akhir (non-null = selesai)
+                const isValidated = item.berat_gabah_akhir !== null;
 
-                // Waktu selesai (jam:menit:detik) + penanda hari jika beda hari
-                let selesaiDisplay = item.timestamp_selesai?.split(' ')[1] ?? '-';
+                // Format waktu dan tanggal
+                const timestampMulai = item.timestamp_mulai_mentah
+                    ? new Date(item.timestamp_mulai_mentah)
+                    : null;
+                const timestampSelesai = item.timestamp_selesai
+                    ? new Date(item.timestamp_selesai)
+                    : null;
+
+                const tanggalMulaiFormatted = timestampMulai
+                    ? timestampMulai.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : '-';
+                const tanggalSelesaiFormatted = timestampSelesai
+                    ? timestampSelesai.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : '-';
+
+                let selesaiDisplay = timestampSelesai
+                    ? timestampSelesai.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    : '-';
                 let selesaiStyle = '';
-                let selesaiTooltip = item.timestamp_selesai || '-';
-
-                // Format tanggal mulai & selesai
-                let tanggalMulaiFormatted = item.timestamp_mulai_mentah
-                    ? new Date(item.timestamp_mulai_mentah).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                let selesaiTooltip = timestampSelesai
+                    ? timestampSelesai.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
                     : '-';
 
-                // let tanggalSelesaiFormatted = isValidated
-                //     ? new Date(item.timestamp_selesai).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-                //     : '-';
-                let tanggalSelesaiFormatted = item.timestamp_selesai
-                    ? new Date(item.timestamp_selesai).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-                    : '-';
-
-                // Tambahan tanda +xh jika lintas hari
-                if (isValidated && item.timestamp_mulai_mentah && item.timestamp_selesai) {
-                    const startDate = new Date(item.timestamp_mulai_mentah);
-                    const endDate = new Date(item.timestamp_selesai);
-                    const timeDiff = endDate - startDate;
-                    const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                // Hitung selisih hari berdasarkan tanggal kalender
+                let dayDiff = 0;
+                if (timestampMulai && timestampSelesai) {
+                    // Atur waktu ke 00:00:00 untuk membandingkan tanggal saja
+                    const startDate = new Date(timestampMulai.getFullYear(), timestampMulai.getMonth(), timestampMulai.getDate());
+                    const endDate = new Date(timestampSelesai.getFullYear(), timestampSelesai.getMonth(), timestampSelesai.getDate());
+                    // Hitung selisih hari
+                    dayDiff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
                     if (dayDiff > 0) {
-                        selesaiDisplay = `${selesaiDisplay}<span style="font-weight:900;">+${dayDiff}h</span>`;
+                        selesaiDisplay += `<span style="font-weight:900;">+${dayDiff}h</span>`;
                         selesaiStyle = 'text-decoration:underline;font-weight:900;margin-left:3px;';
                     }
-                    selesaiTooltip = endDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 }
 
                 const cardHtml = `
@@ -332,14 +421,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-seedling me-2" style="color:#1E3B8A;font-size:20px;"></i>
                                         <span class="ms-2 fw-bold" style="letter-spacing:1px;font-size:16px;color:#1E3B8A;">
-                                            ${item.nama_jenis ?? '-'}
+                                            ${item.nama_jenis}
                                         </span>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         ${
                                             isValidated
-                                            ? `<span class="fw-semibold d-flex align-items-center" style="color:rgb(49 164 119)">
-                                                    <i class="fas fa-check-circle me-1"></i>
+                                            ? `<span class="fw-semibold d-flex align-items-center" style="color:rgb(49,164,119);">
+                                                    <i class="fas fa-check-circle me-1"></i> Selesai
                                                </span>`
                                             : `<button class="btn btn-outline-primary btn-sm btn-validasi"
                                                         data-bs-toggle="modal"
@@ -355,18 +444,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 <div class="mt-3 d-flex flex-wrap gap-3 text-muted" style="font-size:14px;">
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-clock me-1"></i> Mulai: ${item.timestamp_mulai_mentah?.split(' ')[1] ?? '-'}
+                                        <i class="bi bi-clock me-1"></i> Mulai: ${timestampMulai ? timestampMulai.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}
                                     </div>
                                     |
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-clock me-1"></i>
-                                        Selesai:
-                                        ${
-                                            item.timestamp_selesai
-                                            ? `<span class="selesai-time" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                                title="${selesaiTooltip}" style="${selesaiStyle}">${selesaiDisplay}</span>`
-                                            : '-'
-                                        }
+                                        <i class="bi bi-clock me-1"></i> Selesai:
+                                        <span class="selesai-time" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                              title="${selesaiTooltip}" style="${selesaiStyle}">${selesaiDisplay}</span>
                                     </div>
                                 </div>
 
@@ -381,11 +465,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span><i class="bi bi-box-seam me-2"></i> Berat Gabah Awal:</span>
-                                        <span style="font-weight:900;color:#1E3B8A;">${item.berat_gabah_awal ?? '-'} kg</span>
+                                        <span class="berat-awal" style="font-weight:900;color:#1E3B8A;">
+                                            ${item.berat_gabah_awal !== null ? Number(item.berat_gabah_awal).toFixed(2) + ' kg' : '-'}
+                                        </span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span><i class="bi bi-box2-heart me-2"></i> Berat Gabah Akhir:</span>
-                                        <span style="font-weight:900;color:#1E3B8A;">${item.berat_gabah_akhir ?? '-' } kg</span>
+                                        <span style="font-weight:900;color:#1E3B8A;">
+                                            ${item.berat_gabah_akhir !== null ? Number(item.berat_gabah_akhir).toFixed(2) + ' kg' : '-'}
+                                        </span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span><i class="bi bi-hourglass-split me-2"></i> Estimasi Durasi:</span>
@@ -406,15 +494,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // Aktifkan tooltip Bootstrap
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
-
         } catch (error) {
             console.error('Error fetching data:', error);
-            riwayatContainer.innerHTML = '<p class="text-danger">Gagal memuat data. Silakan <a href="/login">login kembali</a>.</p>';
+            riwayatContainer.innerHTML = '<p class="text-danger">Gagal memuat data. Silakan coba lagi atau <a href="/login">login kembali</a>.</p>';
             window.notify?.({
-                title: 'Gagal memuat',
-                message: 'Terjadi kendala saat memuat data riwayat.',
+                title: 'Gagal Memuat',
+                message: `Terjadi kendala saat memuat data riwayat: ${error.message}`,
                 type: 'error',
-                duration: 3000
+                duration: 4000
             });
         }
     }
