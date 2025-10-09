@@ -493,7 +493,7 @@
                 // Reload if needed
                 if (reload) {
                     setTimeout(() => {
-                        console.log('🔄 Reloading after manual close...');
+                        // console.log('🔄 Reloading after manual close...');
                         location.reload();
                     }, 300);
                 }
@@ -1070,7 +1070,7 @@
     <div class="flex flex-col gap-6 mt-6">
         <div class="w-full">
             {{-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"> --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                 <!-- Card 1 -->
                 <div id="cardSuhuGabah"
                     style="height:110px;background-color:rgb(127 144 190 / 16%);border:1px solid #1e3b8a42;"
@@ -1599,305 +1599,441 @@
     </div>
 
     <script>
-    // Toggle Sidebar - DENGAN STATE MANAGEMENT
-    window.toggleSidebar = function() {
-        const sidebarEl = document.getElementById('miniSidebar');
-        if (!sidebarEl) return;
-        
-        // Toggle expanded class
-        sidebarEl.classList.toggle('expanded');
-        
-        // Update manual toggle flag
-        window.sidebarManualToggle = true;
-        
-        const isExpanded = sidebarEl.classList.contains('expanded');
-        console.log(`👆 Manual sidebar toggle: ${isExpanded ? 'expanded' : 'collapsed'}`);
-    };
+        // Toggle Sidebar - DENGAN STATE MANAGEMENT
+        window.toggleSidebar = function() {
+            const sidebarEl = document.getElementById('miniSidebar');
+            if (!sidebarEl) return;
 
-    // ====== GLOBAL FUNCTIONS - Pindahkan ke luar IIFE ======
-    const isNum = (v) => v !== null && v !== '' && !Number.isNaN(Number(v)) && Number.isFinite(parseFloat(v));
-    const fmtDur = (m) => {
-        const n = parseFloat(m);
-        if (!isNum(n) || n <= 0) return '0 menit';
-        const h = Math.floor(n / 60);
-        const mm = Math.floor(n % 60);
-        return h > 0 ? `${h} jam ${mm} menit` : `${mm} menit`;
-    };
+            // Toggle expanded class
+            sidebarEl.classList.toggle('expanded');
 
-    const pad2 = (n) => (n < 10 ? `0${n}` : `${n}`);
-    const fmtDateTime = (ts) => {
-        const d = parseAnyTs(ts);
-        if (!d) return 'Tidak tersedia';
-        const tanggal = d.toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
-        const jamMenit = `${pad2(d.getHours())}.${pad2(d.getMinutes())}`;
-        return `${jamMenit}, ${tanggal}`;
-    };
+            // Update manual toggle flag
+            window.sidebarManualToggle = true;
 
-    // ====== GLOBAL FUNCTION: parseAnyTs - SUPPORT LEBIH BANYAK FORMAT ======
-    function parseAnyTs(ts) {
-        if (!ts) return null;
-        
-        // Format ISO dengan timezone
-        if (/Z|[+\-]\d{2}:\d{2}$/.test(ts)) {
-            const d = new Date(ts.replace(' ', 'T'));
-            if (!isNaN(d.getTime())) return d;
-        }
-        
-        // Format Y-m-d H:i:s (standard Laravel)
-        let m = String(ts).match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
-        if (m) {
-            const y = +m[1], mo = +m[2] - 1, da = +m[3];
-            const hh = +(m[4] || '0'), mm = +(m[5] || '0'), ss = +(m[6] || '0');
-            const d = new Date(y, mo, da, hh, mm, ss);
-            if (!isNaN(d.getTime())) return d;
-        }
-        
-        // Format Y-m-d H:i (tanpa detik)
-        m = String(ts).match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{1,2})$/);
-        if (m) {
-            const y = +m[1], mo = +m[2] - 1, da = +m[3];
-            const hh = +m[4], mm = +m[5];
-            const d = new Date(y, mo, da, hh, mm, 0);
-            if (!isNaN(d.getTime())) return d;
-        }
-        
-        // Fallback ke Date constructor
-        const d = new Date(ts);
-        if (!isNaN(d.getTime())) return d;
-        
-        console.warn('⚠️ Failed to parse timestamp:', ts);
-        return null;
-    }
-
-    // ====== GLOBAL FUNCTION: minutesSince - DENGAN VALIDASI LEBIH BAIK ======
-    const minutesSince = (ts) => {
-        if (!ts) {
-            console.warn('⚠️ No timestamp provided to minutesSince');
-            return 0;
-        }
-        
-        const parsed = parseAnyTs(ts);
-        if (!parsed || isNaN(parsed.getTime())) {
-            console.warn('⚠️ Invalid timestamp parsed:', ts);
-            return 0;
-        }
-        
-        const now = new Date();
-        const diffMs = now - parsed;
-        
-        if (diffMs < 0) {
-            console.warn('⚠️ Timestamp in future:', ts);
-            return 0;
-        }
-        
-        const minutes = Math.floor(diffMs / 60000);
-        return Math.max(0, minutes);
-    };
-
-    // ====== GLOBAL FUNCTION: showNoProcess - JAGA STATE EXPANDED ======
-    window.showNoProcess = function() {
-        // ✅ PERBAIKAN: Simpan state expanded sebelum reset
-        const sidebarEl = document.getElementById('miniSidebar');
-        const wasExpanded = sidebarEl && sidebarEl.classList.contains('expanded');
-        
-        const durasiEl = document.getElementById('durasiText');
-        const jenisEl = document.getElementById('jenisGabah');
-        const beratEl = document.getElementById('beratGabahAwal');
-        const targetEl = document.getElementById('targetKadarAir');
-        const waktuEl = document.getElementById('waktuDimulai');
-        const durasiTerEl = document.getElementById('durasiTerlaksanaText');
-        const noProcessEl = document.getElementById('noProcessMessage');
-        const durationOption = document.querySelector('.duration-option');
-
-        // Update content
-        if (durasiEl) durasiEl.innerText = '0 menit';
-        if (jenisEl) jenisEl.innerText = 'Tidak tersedia';
-        if (beratEl) beratEl.innerText = 'Tidak tersedia';
-        if (targetEl) targetEl.innerText = '14%';
-        if (waktuEl) waktuEl.innerText = 'Tidak tersedia';
-        if (durasiTerEl) durasiTerEl.innerText = 'Tidak tersedia';
-        
-        if (sidebarEl) sidebarEl.style.display = 'block';
-        if (noProcessEl) noProcessEl.style.display = 'block';
-        if (durationOption) durationOption.style.display = 'none';
-        
-        console.log('📋 showNoProcess called, wasExpanded:', wasExpanded);
-        
-        // ✅ PERBAIKAN: Restore expanded state jika sebelumnya expanded
-        if (wasExpanded && sidebarEl) {
-            setTimeout(() => {
-                sidebarEl.classList.add('expanded');
-                console.log('🔄 Sidebar expanded state restored in showNoProcess');
-            }, 50);
-        }
-    };
-
-    let durasiTimer = null,
-        lastPid = null,
-        lastStartTs = null;
-
-    // ====== GLOBAL FUNCTION: startDurasiTicker - DENGAN DATABASE TIMESTAMP ======
-    window.startDurasiTicker = function(tsMulai) {
-        // Stop existing timer
-        if (durasiTimer) {
-            clearInterval(durasiTimer);
-            durasiTimer = null;
-        }
-        
-        // Validasi timestamp
-        if (!tsMulai) {
-            console.warn('⚠️ No valid timestamp for durasi ticker');
-            return;
-        }
-        
-        const durasiTerEl = document.getElementById('durasiTerlaksanaText');
-        if (!durasiTerEl) {
-            console.warn('⚠️ durasiTerlaksanaText element not found');
-            return;
-        }
-        
-        console.log('⏰ Starting durasi ticker with timestamp:', tsMulai);
-        
-        const updateDuration = () => {
-            const currentDuration = minutesSince(tsMulai);
-            durasiTerEl.innerText = fmtDur(currentDuration);
-            
-            // Log setiap jam untuk monitoring
-            if (currentDuration % 60 === 0 && currentDuration > 0) {
-                console.log(`⏱️ Process running for ${currentDuration} minutes`);
-            }
+            const isExpanded = sidebarEl.classList.contains('expanded');
+            // console.log(`👆 Manual sidebar toggle: ${isExpanded ? 'expanded' : 'collapsed'}`);
         };
-        
-        // Initial update
-        updateDuration();
-        
-        // Update setiap menit
-        durasiTimer = setInterval(updateDuration, 60000);
-        
-        console.log('✅ Durasi ticker started successfully');
-    };
 
-    // ====== GLOBAL FUNCTION: fetchProcessDetail - DENGAN ERROR HANDLING ======
-    window.fetchProcessDetail = async function(processId, headers) {
-        try {
-            console.log('🔍 Fetching process detail for PID:', processId);
-            
-            const response = await fetch(`${baseUrl}/drying-process/${processId}`, {
-                headers: headers || {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-                }
+        // ====== GLOBAL FUNCTIONS - Pindahkan ke luar IIFE ======
+        const isNum = (v) => v !== null && v !== '' && !Number.isNaN(Number(v)) && Number.isFinite(parseFloat(v));
+        const fmtDur = (m) => {
+            const n = parseFloat(m);
+            if (!isNum(n) || n <= 0) return '0 menit';
+            const h = Math.floor(n / 60);
+            const mm = Math.floor(n % 60);
+            return h > 0 ? `${h} jam ${mm} menit` : `${mm} menit`;
+        };
+
+        const pad2 = (n) => (n < 10 ? `0${n}` : `${n}`);
+        const fmtDateTime = (ts) => {
+            const d = parseAnyTs(ts);
+            if (!d) return 'Tidak tersedia';
+            const tanggal = d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
             });
-            
-            if (!response.ok) {
-                console.warn(`Process detail fetch failed: ${response.status}`);
-                return null;
+            const jamMenit = `${pad2(d.getHours())}.${pad2(d.getMinutes())}`;
+            return `${jamMenit}, ${tanggal}`;
+        };
+
+        // ====== GLOBAL FUNCTION: parseAnyTs - SUPPORT LEBIH BANYAK FORMAT ======
+        function parseAnyTs(ts) {
+            if (!ts) return null;
+
+            // Format ISO dengan timezone
+            if (/Z|[+\-]\d{2}:\d{2}$/.test(ts)) {
+                const d = new Date(ts.replace(' ', 'T'));
+                if (!isNaN(d.getTime())) return d;
             }
-            
-            const result = await response.json();
-            const data = result.data || result; // Handle different response formats
-            
-            if (!data) {
-                console.warn('No process data received');
-                return null;
+
+            // Format Y-m-d H:i:s (standard Laravel)
+            let m = String(ts).match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+            if (m) {
+                const y = +m[1],
+                    mo = +m[2] - 1,
+                    da = +m[3];
+                const hh = +(m[4] || '0'),
+                    mm = +(m[5] || '0'),
+                    ss = +(m[6] || '0');
+                const d = new Date(y, mo, da, hh, mm, ss);
+                if (!isNaN(d.getTime())) return d;
             }
-            
-            // ✅ PERBAIKAN: Pastikan timestamp_mulai ada dan valid
-            let timestampMulai = data.timestamp_mulai || data.start_time;
-            if (timestampMulai) {
-                // Validasi format timestamp
-                const testDate = new Date(timestampMulai.replace(' ', 'T'));
-                if (isNaN(testDate.getTime())) {
-                    console.warn('Invalid timestamp format:', timestampMulai);
-                    timestampMulai = null;
-                }
+
+            // Format Y-m-d H:i (tanpa detik)
+            m = String(ts).match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{1,2})$/);
+            if (m) {
+                const y = +m[1],
+                    mo = +m[2] - 1,
+                    da = +m[3];
+                const hh = +m[4],
+                    mm = +m[5];
+                const d = new Date(y, mo, da, hh, mm, 0);
+                if (!isNaN(d.getTime())) return d;
             }
-            
-            const processDetail = {
-                nama_jenis: data.nama_jenis || data.grain_type?.nama_jenis || data.grain_type?.nama || data.grain_type?.name || 'Tidak diketahui',
-                timestamp_mulai: timestampMulai, // Dari DB - akurat
-                berat_gabah_awal: data.berat_gabah_awal || data.berat_gabah || null,
-                status: data.status,
-                process_id: data.process_id,
-                dryer_id: data.dryer_id
-            };
-            
-            console.log('✅ Process detail fetched:', processDetail);
-            return processDetail;
-            
-        } catch (error) {
-            console.error('❌ fetchProcessDetail error:', error);
+
+            // Fallback ke Date constructor
+            const d = new Date(ts);
+            if (!isNaN(d.getTime())) return d;
+
+            console.warn('⚠️ Failed to parse timestamp:', ts);
             return null;
         }
-    };
 
-    // ====== GLOBAL FUNCTION: updateSidebar - PERBAIKI STATE EXPANDED ======
-    window.updateSidebar = async function() {
-        try {
-            const token = localStorage.getItem('token') || '';
-            const headers = {
-                Accept: 'application/json'
-            };
-            if (token) headers['Authorization'] = 'Bearer ' + token;
+        // ====== GLOBAL FUNCTION: minutesSince - DENGAN VALIDASI LEBIH BAIK ======
+        const minutesSince = (ts) => {
+            if (!ts) {
+                console.warn('⚠️ No timestamp provided to minutesSince');
+                return 0;
+            }
 
-            const pid = localStorage.getItem('active_process_id') || '';
-            const dryerId = localStorage.getItem('selected_dryer_id') || '';
-            
-            // ✅ PERBAIKAN: Simpan state expanded sebelum update
+            const parsed = parseAnyTs(ts);
+            if (!parsed || isNaN(parsed.getTime())) {
+                console.warn('⚠️ Invalid timestamp parsed:', ts);
+                return 0;
+            }
+
+            const now = new Date();
+            const diffMs = now - parsed;
+
+            if (diffMs < 0) {
+                console.warn('⚠️ Timestamp in future:', ts);
+                return 0;
+            }
+
+            const minutes = Math.floor(diffMs / 60000);
+            return Math.max(0, minutes);
+        };
+
+        // ====== GLOBAL FUNCTION: showNoProcess - JAGA STATE EXPANDED ======
+        window.showNoProcess = function() {
+            // ✅ PERBAIKAN: Simpan state expanded sebelum reset
             const sidebarEl = document.getElementById('miniSidebar');
             const wasExpanded = sidebarEl && sidebarEl.classList.contains('expanded');
-            console.log('📋 Sidebar state before update:', { wasExpanded });
-            
-            // ✅ PERBAIKAN: Langsung ambil dari database jika ada process_id
-            let dp = null;
-            let tsMulaiFromDB = null;
-            
-            if (pid) {
-                // Prioritas 1: Ambil detail lengkap dari database
-                try {
-                    console.log('📋 Fetching process detail from DB for PID:', pid);
-                    const processResponse = await fetch(`${baseUrl}/drying-process/${pid}`, {
+
+            const durasiEl = document.getElementById('durasiText');
+            const jenisEl = document.getElementById('jenisGabah');
+            const beratEl = document.getElementById('beratGabahAwal');
+            const targetEl = document.getElementById('targetKadarAir');
+            const waktuEl = document.getElementById('waktuDimulai');
+            const durasiTerEl = document.getElementById('durasiTerlaksanaText');
+            const noProcessEl = document.getElementById('noProcessMessage');
+            const durationOption = document.querySelector('.duration-option');
+
+            // Update content
+            if (durasiEl) durasiEl.innerText = '0 menit';
+            if (jenisEl) jenisEl.innerText = 'Tidak tersedia';
+            if (beratEl) beratEl.innerText = 'Tidak tersedia';
+            if (targetEl) targetEl.innerText = '14%';
+            if (waktuEl) waktuEl.innerText = 'Tidak tersedia';
+            if (durasiTerEl) durasiTerEl.innerText = 'Tidak tersedia';
+
+            if (sidebarEl) sidebarEl.style.display = 'block';
+            if (noProcessEl) noProcessEl.style.display = 'block';
+            if (durationOption) durationOption.style.display = 'none';
+
+            // console.log('📋 showNoProcess called, wasExpanded:', wasExpanded);
+
+            // ✅ PERBAIKAN: Restore expanded state jika sebelumnya expanded
+            if (wasExpanded && sidebarEl) {
+                setTimeout(() => {
+                    sidebarEl.classList.add('expanded');
+                    // console.log('🔄 Sidebar expanded state restored in showNoProcess');
+                }, 50);
+            }
+        };
+
+        let durasiTimer = null,
+            lastPid = null,
+            lastStartTs = null;
+
+        // ====== GLOBAL FUNCTION: startDurasiTicker - DENGAN DATABASE TIMESTAMP ======
+        window.startDurasiTicker = function(tsMulai) {
+            // Stop existing timer
+            if (durasiTimer) {
+                clearInterval(durasiTimer);
+                durasiTimer = null;
+            }
+
+            // Validasi timestamp
+            if (!tsMulai) {
+                console.warn('⚠️ No valid timestamp for durasi ticker');
+                return;
+            }
+
+            const durasiTerEl = document.getElementById('durasiTerlaksanaText');
+            if (!durasiTerEl) {
+                console.warn('⚠️ durasiTerlaksanaText element not found');
+                return;
+            }
+
+            // console.log('⏰ Starting durasi ticker with timestamp:', tsMulai);
+
+            const updateDuration = () => {
+                const currentDuration = minutesSince(tsMulai);
+                durasiTerEl.innerText = fmtDur(currentDuration);
+
+                // Log setiap jam untuk monitoring
+                if (currentDuration % 60 === 0 && currentDuration > 0) {
+                    // console.log(`⏱️ Process running for ${currentDuration} minutes`);
+                }
+            };
+
+            // Initial update
+            updateDuration();
+
+            // Update setiap menit
+            durasiTimer = setInterval(updateDuration, 60000);
+
+            // console.log('✅ Durasi ticker started successfully');
+        };
+
+        // ====== GLOBAL FUNCTION: fetchProcessDetail - DENGAN ERROR HANDLING ======
+        window.fetchProcessDetail = async function(processId, headers) {
+            try {
+                // console.log('🔍 Fetching process detail for PID:', processId);
+
+                const response = await fetch(`${baseUrl}/drying-process/${processId}`, {
+                    headers: headers || {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.warn(`Process detail fetch failed: ${response.status}`);
+                    return null;
+                }
+
+                const result = await response.json();
+                const data = result.data || result; // Handle different response formats
+
+                if (!data) {
+                    console.warn('No process data received');
+                    return null;
+                }
+
+                // ✅ PERBAIKAN: Pastikan timestamp_mulai ada dan valid
+                let timestampMulai = data.timestamp_mulai || data.start_time;
+                if (timestampMulai) {
+                    // Validasi format timestamp
+                    const testDate = new Date(timestampMulai.replace(' ', 'T'));
+                    if (isNaN(testDate.getTime())) {
+                        console.warn('Invalid timestamp format:', timestampMulai);
+                        timestampMulai = null;
+                    }
+                }
+
+                const processDetail = {
+                    nama_jenis: data.nama_jenis || data.grain_type?.nama_jenis || data.grain_type?.nama || data
+                        .grain_type?.name || 'Tidak diketahui',
+                    timestamp_mulai: timestampMulai, // Dari DB - akurat
+                    berat_gabah_awal: data.berat_gabah_awal || data.berat_gabah || null,
+                    status: data.status,
+                    process_id: data.process_id,
+                    dryer_id: data.dryer_id
+                };
+
+                // console.log('✅ Process detail fetched:', processDetail);
+                return processDetail;
+
+            } catch (error) {
+                console.error('❌ fetchProcessDetail error:', error);
+                return null;
+            }
+        };
+
+        // ====== GLOBAL FUNCTION: updateSidebar - PERBAIKI STATE EXPANDED ======
+        window.updateSidebar = async function() {
+            try {
+                const token = localStorage.getItem('token') || '';
+                const headers = {
+                    Accept: 'application/json'
+                };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const pid = localStorage.getItem('active_process_id') || '';
+                const dryerId = localStorage.getItem('selected_dryer_id') || '';
+
+                // ✅ PERBAIKAN: Simpan state expanded sebelum update
+                const sidebarEl = document.getElementById('miniSidebar');
+                const wasExpanded = sidebarEl && sidebarEl.classList.contains('expanded');
+
+                // ✅ PERBAIKAN: Langsung ambil dari database jika ada process_id
+                let dp = null;
+                let tsMulaiFromDB = null;
+
+                if (pid) {
+                    // Prioritas 1: Ambil detail lengkap dari database
+                    try {
+                        // console.log('📋 Fetching process detail from DB for PID:', pid);
+                        const processResponse = await fetch(`${baseUrl}/drying-process/${pid}`, {
+                            headers
+                        });
+
+                        if (processResponse.ok) {
+                            const processResult = await processResponse.json();
+                            dp = processResult.data || null;
+
+                            if (dp && dp.status === 'ongoing') {
+                                tsMulaiFromDB = dp.timestamp_mulai;
+
+                            }
+                        } else {
+                            console.warn('⚠️ Failed to fetch process detail:', processResponse.status);
+                        }
+                    } catch (dbErr) {
+                        console.warn('⚠️ Database fetch error, falling back to realtime:', dbErr);
+                    }
+                }
+
+                // Fallback: Gunakan realtime endpoint jika database gagal
+                if (!dp) {
+                    let url = `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() ?? 1 }}`;
+                    if (pid) url += `&process_id=${pid}`;
+                    if (dryerId) url += `&dryer_id=${dryerId}`;
+
+                    const res = await fetch(url, {
                         headers
                     });
-                    
-                    if (processResponse.ok) {
-                        const processResult = await processResponse.json();
-                        dp = processResult.data || null;
-                        
-                        if (dp && dp.status === 'ongoing') {
-                            tsMulaiFromDB = dp.timestamp_mulai;
-                            console.log('✅ Process data from DB:', { pid, tsMulaiFromDB, status: dp.status });
-                        }
-                    } else {
-                        console.warn('⚠️ Failed to fetch process detail:', processResponse.status);
-                    }
-                } catch (dbErr) {
-                    console.warn('⚠️ Database fetch error, falling back to realtime:', dbErr);
+                    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+                    const data = await res.json();
+                    dp = data.drying_process || data?.data?.drying_process || null;
+
+
                 }
-            }
 
-            // Fallback: Gunakan realtime endpoint jika database gagal
-            if (!dp) {
-                let url = `${baseUrl}/get_sensor/realtime?user_id={{ auth()->id() ?? 1 }}`;
-                if (pid) url += `&process_id=${pid}`;
-                if (dryerId) url += `&dryer_id=${dryerId}`;
+                // Validasi process
+                if (!dp || dp.status !== 'ongoing' || (dryerId && String(dp.dryer_id) !== String(dryerId))) {
+                    // console.log('❌ No valid ongoing process found');
+                    showNoProcess();
+                    if (durasiTimer) {
+                        clearInterval(durasiTimer);
+                        durasiTimer = null;
+                    }
+                    lastPid = null;
+                    lastStartTs = null;
+                    return;
+                }
 
-                const res = await fetch(url, { headers });
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                
-                const data = await res.json();
-                dp = data.drying_process || data?.data?.drying_process || null;
-                
-                console.log('📡 Realtime data:', { pid, dp: !!dp, status: dp?.status });
-            }
+                // Estimasi durasi
+                const durasiRekom = isNum(dp.durasi_rekomendasi) ? parseFloat(dp.durasi_rekomendasi) : 0;
+                const durasiEl = document.getElementById('durasiText');
+                if (durasiEl) durasiEl.innerText = fmtDur(durasiRekom);
 
-            // Validasi process
-            if (!dp || dp.status !== 'ongoing' || (dryerId && String(dp.dryer_id) !== String(dryerId))) {
-                console.log('❌ No valid ongoing process found');
+                // Nama jenis gabah
+                let jenisText = 'Tidak tersedia';
+                if (dp.nama_jenis) {
+                    jenisText = dp.nama_jenis;
+                } else {
+                    // Fallback: fetch detail jika nama_jenis kosong
+                    const processId = dp.process_id;
+                    if (processId) {
+                        const detail = await fetchProcessDetail(processId, headers);
+                        if (detail && detail.nama_jenis) {
+                            jenisText = detail.nama_jenis;
+                        }
+                    }
+                }
+                const jenisEl = document.getElementById('jenisGabah');
+                if (jenisEl) jenisEl.innerText = jenisText;
+
+                // Berat gabah awal
+                const beratEl = document.getElementById('beratGabahAwal');
+                if (beratEl) {
+                    if (isNum(dp.berat_gabah_awal)) {
+                        beratEl.innerText = `${parseFloat(dp.berat_gabah_awal).toLocaleString('id-ID')} kg`;
+                    } else {
+                        beratEl.innerText = 'Tidak tersedia';
+                    }
+                }
+
+                // Target kadar air
+                const targetEl = document.getElementById('targetKadarAir');
+                if (targetEl) {
+                    const target = isNum(dp.kadar_air_target) ? dp.kadar_air_target : 14;
+                    targetEl.innerText = `${parseFloat(target).toFixed(0)}%`;
+                }
+
+                // ✅ PERBAIKAN: Timestamp mulai - PRIORITAS DARI DATABASE
+                let tsMulai = tsMulaiFromDB || dp.timestamp_mulai;
+
+                // Fallback ke cache atau fetch detail
+                const cacheKey = 'process_start_ts_' + dp.process_id;
+                if (!tsMulai) {
+                    tsMulai = localStorage.getItem(cacheKey);
+                }
+
+                if (!tsMulai && dp.process_id) {
+                    const detail = await fetchProcessDetail(dp.process_id, headers);
+                    tsMulai = detail?.timestamp_mulai || null;
+                }
+
+                // Simpan ke cache
+                if (tsMulai) {
+                    localStorage.setItem(cacheKey, tsMulai);
+                }
+
+                const waktuEl = document.getElementById('waktuDimulai');
+                if (waktuEl) {
+                    waktuEl.innerText = tsMulai ? fmtDateTime(tsMulai) : 'Tidak tersedia';
+                }
+
+                // Update durasi ticker
+                if (tsMulai) {
+                    if (String(lastPid) !== String(dp.process_id) || lastStartTs !== tsMulai) {
+                        lastPid = dp.process_id;
+                        lastStartTs = tsMulai;
+                        startDurasiTicker(tsMulai);
+                        // console.log('⏰ Started durasi ticker with DB timestamp:', tsMulai);
+                    } else {
+                        // Update current display
+                        const durasiTerEl = document.getElementById('durasiTerlaksanaText');
+                        if (durasiTerEl) {
+                            durasiTerEl.innerText = fmtDur(minutesSince(tsMulai));
+                        }
+                    }
+                } else {
+                    const durasiTerEl = document.getElementById('durasiTerlaksanaText');
+                    if (durasiTerEl) durasiTerEl.innerText = 'Tidak tersedia';
+                    if (durasiTimer) {
+                        clearInterval(durasiTimer);
+                        durasiTimer = null;
+                    }
+                    console.warn('⚠️ No valid timestamp_mulai found');
+                }
+
+                // ✅ PERBAIKAN: Show sidebar DAN PERBAIKI STATE EXPANDED
+                const noProcessEl = document.getElementById('noProcessMessage');
+                const durationOption = document.querySelector('.duration-option');
+
+                if (sidebarEl) sidebarEl.style.display = 'block';
+                if (noProcessEl) noProcessEl.style.display = 'none';
+                if (durationOption) durationOption.style.display = 'flex';
+
+                // ✅ PERBAIKAN UTAMA: Kembalikan state expanded jika sebelumnya expanded
+                if (wasExpanded && sidebarEl && !window.sidebarManualToggle) {
+                    // Delay sebentar untuk memastikan DOM updated
+                    setTimeout(() => {
+                        sidebarEl.classList.add('expanded');
+                        // console.log('🔄 Sidebar expanded state restored');
+                    }, 50);
+                } else if (!wasExpanded && sidebarEl && !window.sidebarManualToggle) {
+                    // Pastikan tidak expanded jika sebelumnya collapsed
+                    sidebarEl.classList.remove('expanded');
+                }
+
+                // Reset manual toggle flag
+                window.sidebarManualToggle = false;
+
+            } catch (err) {
+                console.error('❌ mini-sidebar realtime error:', err);
+
+                // ✅ PERBAIKAN: Jaga state expanded saat error juga
+                const sidebarEl = document.getElementById('miniSidebar');
+                const wasExpanded = sidebarEl && sidebarEl.classList.contains('expanded');
+
                 showNoProcess();
                 if (durasiTimer) {
                     clearInterval(durasiTimer);
@@ -1905,163 +2041,24 @@
                 }
                 lastPid = null;
                 lastStartTs = null;
-                return;
-            }
 
-            console.log('✅ Valid ongoing process found:', { pid: dp.process_id, status: dp.status });
-
-            // Estimasi durasi
-            const durasiRekom = isNum(dp.durasi_rekomendasi) ? parseFloat(dp.durasi_rekomendasi) : 0;
-            const durasiEl = document.getElementById('durasiText');
-            if (durasiEl) durasiEl.innerText = fmtDur(durasiRekom);
-
-            // Nama jenis gabah
-            let jenisText = 'Tidak tersedia';
-            if (dp.nama_jenis) {
-                jenisText = dp.nama_jenis;
-            } else {
-                // Fallback: fetch detail jika nama_jenis kosong
-                const processId = dp.process_id;
-                if (processId) {
-                    const detail = await fetchProcessDetail(processId, headers);
-                    if (detail && detail.nama_jenis) {
-                        jenisText = detail.nama_jenis;
-                    }
+                // ✅ PERBAIKAN: Restore expanded state setelah error
+                if (wasExpanded && sidebarEl && !window.sidebarManualToggle) {
+                    setTimeout(() => {
+                        sidebarEl.classList.add('expanded');
+                        // console.log('🔄 Sidebar expanded state restored after error');
+                    }, 100);
                 }
-            }
-            const jenisEl = document.getElementById('jenisGabah');
-            if (jenisEl) jenisEl.innerText = jenisText;
 
-            // Berat gabah awal
-            const beratEl = document.getElementById('beratGabahAwal');
-            if (beratEl) {
-                if (isNum(dp.berat_gabah_awal)) {
-                    beratEl.innerText = `${parseFloat(dp.berat_gabah_awal).toLocaleString('id-ID')} kg`;
-                } else {
-                    beratEl.innerText = 'Tidak tersedia';
-                }
+                // Reset manual toggle flag
+                window.sidebarManualToggle = false;
             }
+        };
 
-            // Target kadar air
-            const targetEl = document.getElementById('targetKadarAir');
-            if (targetEl) {
-                const target = isNum(dp.kadar_air_target) ? dp.kadar_air_target : 14;
-                targetEl.innerText = `${parseFloat(target).toFixed(0)}%`;
-            }
-
-            // ✅ PERBAIKAN: Timestamp mulai - PRIORITAS DARI DATABASE
-            let tsMulai = tsMulaiFromDB || dp.timestamp_mulai;
-            
-            // Fallback ke cache atau fetch detail
-            const cacheKey = 'process_start_ts_' + dp.process_id;
-            if (!tsMulai) {
-                tsMulai = localStorage.getItem(cacheKey);
-            }
-            
-            if (!tsMulai && dp.process_id) {
-                const detail = await fetchProcessDetail(dp.process_id, headers);
-                tsMulai = detail?.timestamp_mulai || null;
-            }
-            
-            // Simpan ke cache
-            if (tsMulai) {
-                localStorage.setItem(cacheKey, tsMulai);
-            }
-
-            const waktuEl = document.getElementById('waktuDimulai');
-            if (waktuEl) {
-                waktuEl.innerText = tsMulai ? fmtDateTime(tsMulai) : 'Tidak tersedia';
-            }
-
-            // Update durasi ticker
-            if (tsMulai) {
-                if (String(lastPid) !== String(dp.process_id) || lastStartTs !== tsMulai) {
-                    lastPid = dp.process_id;
-                    lastStartTs = tsMulai;
-                    startDurasiTicker(tsMulai);
-                    console.log('⏰ Started durasi ticker with DB timestamp:', tsMulai);
-                } else {
-                    // Update current display
-                    const durasiTerEl = document.getElementById('durasiTerlaksanaText');
-                    if (durasiTerEl) {
-                        durasiTerEl.innerText = fmtDur(minutesSince(tsMulai));
-                    }
-                }
-            } else {
-                const durasiTerEl = document.getElementById('durasiTerlaksanaText');
-                if (durasiTerEl) durasiTerEl.innerText = 'Tidak tersedia';
-                if (durasiTimer) {
-                    clearInterval(durasiTimer);
-                    durasiTimer = null;
-                }
-                console.warn('⚠️ No valid timestamp_mulai found');
-            }
-
-            // ✅ PERBAIKAN: Show sidebar DAN PERBAIKI STATE EXPANDED
-            const noProcessEl = document.getElementById('noProcessMessage');
-            const durationOption = document.querySelector('.duration-option');
-            
-            if (sidebarEl) sidebarEl.style.display = 'block';
-            if (noProcessEl) noProcessEl.style.display = 'none';
-            if (durationOption) durationOption.style.display = 'flex';
-            
-            // ✅ PERBAIKAN UTAMA: Kembalikan state expanded jika sebelumnya expanded
-            if (wasExpanded && sidebarEl && !window.sidebarManualToggle) {
-                // Delay sebentar untuk memastikan DOM updated
-                setTimeout(() => {
-                    sidebarEl.classList.add('expanded');
-                    console.log('🔄 Sidebar expanded state restored');
-                }, 50);
-            } else if (!wasExpanded && sidebarEl && !window.sidebarManualToggle) {
-                // Pastikan tidak expanded jika sebelumnya collapsed
-                sidebarEl.classList.remove('expanded');
-            }
-            
-            // Reset manual toggle flag
-            window.sidebarManualToggle = false;
-
-            console.log('✅ Sidebar updated with DB timestamp:', { 
-                pid: dp.process_id, 
-                tsMulai, 
-                durasiRekom: durasiRekom,
-                jenis: jenisText,
-                wasExpanded,
-                nowExpanded: sidebarEl?.classList.contains('expanded'),
-                manualToggle: window.sidebarManualToggle
-            });
-
-        } catch (err) {
-            console.error('❌ mini-sidebar realtime error:', err);
-            
-            // ✅ PERBAIKAN: Jaga state expanded saat error juga
-            const sidebarEl = document.getElementById('miniSidebar');
-            const wasExpanded = sidebarEl && sidebarEl.classList.contains('expanded');
-            
-            showNoProcess();
-            if (durasiTimer) {
-                clearInterval(durasiTimer);
-                durasiTimer = null;
-            }
-            lastPid = null;
-            lastStartTs = null;
-            
-            // ✅ PERBAIKAN: Restore expanded state setelah error
-            if (wasExpanded && sidebarEl && !window.sidebarManualToggle) {
-                setTimeout(() => {
-                    sidebarEl.classList.add('expanded');
-                    console.log('🔄 Sidebar expanded state restored after error');
-                }, 100);
-            }
-            
-            // Reset manual toggle flag
-            window.sidebarManualToggle = false;
-        }
-    };
-
-    // Panggil updateSidebar secara global
-    updateSidebar();
-    setInterval(updateSidebar, 10000);
-</script>
+        // Panggil updateSidebar secara global
+        updateSidebar();
+        setInterval(updateSidebar, 10000);
+    </script>
 
     <!-- Modal Detail (dipertahankan) -->
     <div class="modal fade modal-detail" id="detailDataModal" tabindex="-1" aria-labelledby="detailDataModalLabel"
@@ -2315,38 +2312,38 @@
 
     <script>
         // Konfigurasi
-    const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
-    const baseUrl = "{{ config('services.api.base_url') }}";
-    const mlServerUrl = "http://192.168.43.142:5000";
-    const userId = {{ auth()->id() ?? 'null' }};
-    const MAX_RETRIES = 3;
+        const sanctumToken = "{{ session('sanctum_token') ?? '' }}";
+        const baseUrl = "{{ config('services.api.base_url') }}";
+        const mlServerUrl = "http://192.168.43.142:5000";
+        const userId = {{ auth()->id() ?? 'null' }};
+        const MAX_RETRIES = 3;
 
-    // Variabel global
-    let statusText, kadarAirText, suhuGabahText, suhuRuanganText, suhuPembakaranText, durasiText, toggleButton,
-        suhuGabahInput, suhuRuanganInput, kadarAirGabahInput, suhuPembakaranInput;
-    let sensorDataByDevice = {};
-    let activeChannel = null;
-    let initialData = {
-        kadar_air_gabah: 0,
-        suhu_gabah: 0,
-        suhu_ruangan: 0,
-        suhu_pembakaran: 0,
-        durasi_rekomendasi: 0,
-        kadar_air_target: 14
-    };
+        // Variabel global
+        let statusText, kadarAirText, suhuGabahText, suhuRuanganText, suhuPembakaranText, durasiText, toggleButton,
+            suhuGabahInput, suhuRuanganInput, kadarAirGabahInput, suhuPembakaranInput;
+        let sensorDataByDevice = {};
+        let activeChannel = null;
+        let initialData = {
+            kadar_air_gabah: 0,
+            suhu_gabah: 0,
+            suhu_ruangan: 0,
+            suhu_pembakaran: 0,
+            durasi_rekomendasi: 0,
+            kadar_air_target: 14
+        };
 
-    const formatDuration = (minutes) => {
-        if (isNaN(minutes) || minutes <= 0) return '0 menit';
-        const tot = parseFloat(minutes);
-        const h = Math.floor(tot / 60),
-            m = Math.floor(tot % 60);
-        return h > 0 ? `${h} jam ${m} menit` : `${m} menit`;
-    };
+        const formatDuration = (minutes) => {
+            if (isNaN(minutes) || minutes <= 0) return '0 menit';
+            const tot = parseFloat(minutes);
+            const h = Math.floor(tot / 60),
+                m = Math.floor(tot % 60);
+            return h > 0 ? `${h} jam ${m} menit` : `${m} menit`;
+        };
 
         // Fungsi untuk cek ketersediaan ML server
         async function checkMLServer() {
             try {
-                console.log('🔌 Checking ML server:', mlServerUrl);
+                // console.log('🔌 Checking ML server:', mlServerUrl);
 
                 // Coba endpoint health dulu
                 const healthResponse = await fetch(`${mlServerUrl}/health`, {
@@ -2354,12 +2351,12 @@
                     headers: {
                         'Accept': 'application/json'
                     },
-                    signal: AbortSignal.timeout(5000) // 5 detik timeout
+                    signal: AbortSignal.timeout(5000)
                 }).catch(() => null);
 
                 if (healthResponse?.ok) {
                     const healthData = await healthResponse.json();
-                    console.log('✅ ML health check passed:', healthData);
+                    // console.log('✅ ML health check passed:', healthData);
                     return true;
                 }
 
@@ -2372,7 +2369,7 @@
                     signal: AbortSignal.timeout(3000)
                 });
 
-                console.log('📡 ML root check status:', rootResponse.status);
+                // console.log('📡 ML root check status:', rootResponse.status);
                 return rootResponse.ok;
 
             } catch (err) {
@@ -2391,7 +2388,6 @@
                 return;
             }
 
-            // Loading state
             dryerSelect.innerHTML = '<option value="" disabled selected>-- Memuat Bed Dryer --</option>';
             dryerSelect.disabled = true;
 
@@ -2418,7 +2414,6 @@
                     return;
                 }
 
-                // Kosongkan dan isi dropdown
                 dryerSelect.innerHTML = '<option value="" disabled selected>-- Pilih Bed Dryer --</option>';
                 dryers.forEach(dryer => {
                     const option = document.createElement('option');
@@ -2431,23 +2426,21 @@
                     dryerSelect.appendChild(option);
                 });
 
-                // Auto-select dryer_id yang tersimpan
                 const savedDryerId = localStorage.getItem('selected_dryer_id');
                 const savedOption = Array.from(dryerSelect.options).find(opt => opt.value == savedDryerId);
 
                 if (savedOption) {
                     dryerSelect.value = savedDryerId;
-                    updateGlobalDryerId(); // Auto-update display
-                    console.log(`✅ Auto-selected saved dryer: ${savedDryerId}`);
+                    updateGlobalDryerId();
+                    // console.log(`✅ Auto-selected saved dryer: ${savedDryerId}`);
                 } else if (dryers.length > 0) {
-                    // Pilih yang pertama jika tidak ada yang tersimpan
                     dryerSelect.value = dryers[0].dryer_id;
                     updateGlobalDryerId();
-                    console.log(`✅ Auto-selected first dryer: ${dryers[0].dryer_id}`);
+                    // console.log(`✅ Auto-selected first dryer: ${dryers[0].dryer_id}`);
                 }
 
                 dryerSelect.disabled = false;
-                console.log(`Loaded ${dryers.length} dryers`);
+                // console.log(`Loaded ${dryers.length} dryers`);
 
             } catch (err) {
                 console.error('Error fetching global dryers:', err);
@@ -2473,52 +2466,39 @@
             const selectedOption = dryerSelect.options[dryerSelect.selectedIndex];
 
             if (dryerId) {
-                // Show loading
                 dryerLoadingIcon.style.display = 'inline';
                 statusDryerInfo.style.display = 'inline-flex';
                 currentDryerDisplay.textContent = 'Memuat...';
                 dryerSelect.classList.add('dryer-selected');
 
-                // Save to localStorage
                 localStorage.setItem('selected_dryer_id', dryerId);
 
-                // Update display dengan data dari option (instant)
                 if (selectedOption) {
                     const dryerName = selectedOption.dataset.dryerName || `Bed Dryer ${dryerId}`;
                     const warehouseName = selectedOption.dataset.warehouseName || 'Gudang Utama';
                     const displayText = `${dryerName} (${warehouseName})`;
 
-                    // Update instant display
                     currentDryerDisplay.textContent = displayText;
                     dryerLoadingIcon.style.display = 'none';
-
-                    console.log(`✅ Instant display updated: ${displayText}`);
+                    // console.log(`✅ Instant display updated: ${displayText}`);
                 }
 
-                // Trigger sensor data dan sidebar update
                 fetchSensorData(null);
+                startSensorMonitoring(dryerId); // Subscribe ke channel dryer
                 if (window.updateSidebar) window.updateSidebar();
-
-                // Success notification
-                // if (selectedOption) {
-                //     showNotification(
-                //         'Bed Dryer Dipilih',
-                //         selectedOption.textContent,
-                //         'success',
-                //         3000
-                //     );
-                // }
 
                 console.log(`✅ Dryer selected: ${dryerId}`);
 
             } else {
-                // Reset state
                 localStorage.removeItem('selected_dryer_id');
                 statusDryerInfo.style.display = 'none';
                 dryerSelect.classList.remove('dryer-selected');
                 resetUI();
-
-                console.log('❌ No dryer selected');
+                if (activeChannel) {
+                    window.Echo.leave(activeChannel);
+                    activeChannel = null;
+                }
+                // console.log('❌ No dryer selected');
                 showNotification('Pilih Bed Dryer', 'Silakan pilih bed dryer untuk melihat data.', 'bg-warning');
             }
         };
@@ -2529,7 +2509,7 @@
             const dryerId = localStorage.getItem('selected_dryer_id') || '';
             let url = `${baseUrl}/get_sensor/realtime?user_id=${userId}`;
             if (processId) url += `&process_id=${processId}`;
-            if (dryerId) url += `&dryer_id=${dryerId}`; // Selalu sertakan dryer_id jika ada
+            if (dryerId) url += `&dryer_id=${dryerId}`;
 
             try {
                 const response = await fetch(url, {
@@ -2544,14 +2524,11 @@
                 }
 
                 const data = await response.json();
-
-                // Reset sensorDataByDevice untuk menghindari data lama dari dryer lain
                 sensorDataByDevice = {};
 
                 if (data.sensors && data.sensors.data) {
                     data.sensors.data.forEach(sensor => {
-                        // Pastikan data sensor sesuai dengan dryer_id
-                        if (dryerId && sensor.dryer_id !== dryerId) return; // Skip jika dryer_id tidak cocok
+                        if (dryerId && sensor.dryer_id !== dryerId) return;
                         sensorDataByDevice[sensor.device_name] = {
                             kadar_air_gabah: parseFloat(sensor.kadar_air_gabah) || 0,
                             suhu_gabah: parseFloat(sensor.suhu_gabah) || 0,
@@ -2562,7 +2539,6 @@
                     });
                 }
 
-                // Perbarui status pengaduk
                 if (data.sensors && "latest_stirrer_status" in data.sensors) {
                     const statusVal = data.sensors.latest_stirrer_status;
                     const elText = document.getElementById("statusPengadukText");
@@ -2604,48 +2580,13 @@
             }
         }
 
-        // Panggil fetchDryers saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchGlobalDryers();
-
-            console.log('🚀 Starting auto-status polling...');
-            setInterval(() => {
-                const currentDryerId = localStorage.getItem('selected_dryer_id');
-                if (currentDryerId) {
-                    fetchSensorData(null).then(data => {
-                        console.log('📡 Status poll completed');
-                    }).catch(err => {
-                        console.error('❌ Status poll error:', err);
-                    });
-                    // ✅ PERBAIKAN: Juga update sidebar
-                    window.updateSidebar();
-                }
-            }, 5000);
-        });
-
         function updateUI(data) {
             const dryingProcess = data.drying_process;
             const sensors = data.sensors || {};
 
-            console.log('🔍 UI Update Debug:', {
-                hasProcess: !!dryingProcess,
-                processStatus: dryingProcess?.status,
-                currentUserId: {{ auth()->id() }},
-                processUserId: dryingProcess?.user_id,
-                currentDryerId: localStorage.getItem('selected_dryer_id'),
-                processDryerId: dryingProcess?.dryer_id,
-                isValid: dryingProcess &&
-                    dryingProcess.status === 'ongoing' &&
-                    // ✅ PERBAIKAN: Validasi user_id lebih longgar
-                    (!dryingProcess.user_id || dryingProcess.user_id === {{ auth()->id() }}) &&
-                    (!localStorage.getItem('selected_dryer_id') || String(dryingProcess.dryer_id) === String(
-                        localStorage.getItem('selected_dryer_id')))
-            });
-
-            // ✅ SELALU UPDATE NILAI SENSOR (bahkan saat nonaktif)
             if (kadarAirText) {
                 kadarAirText.innerText = (typeof sensors.avg_grain_moisture === 'number' && sensors.avg_grain_moisture >
-                        0) ?
+                    0) ?
                     `${sensors.avg_grain_moisture.toFixed(2)}%` : '0.00%';
             }
             if (suhuGabahText) {
@@ -2665,7 +2606,6 @@
                     (sensors.avg_combustion_temperature === null ? 'Data tidak tersedia' : '0.00°C');
             }
 
-            // Update status pengaduk
             const statusPengadukEl = document.getElementById('statusPengadukText');
             const pengadukIcon = document.querySelector('#cardPengaduk i');
             if (statusPengadukEl && pengadukIcon) {
@@ -2679,13 +2619,10 @@
                 }
             }
 
-            // CEK APAKAH ADA PROSES ONGOING YANG VALID
             const dryerId = localStorage.getItem('selected_dryer_id') || '';
             const currentUserId = {{ auth()->id() }};
-            // ✅ PERBAIKAN: Validasi user_id opsional
             const isValidOngoingProcess = dryingProcess &&
                 dryingProcess.status === 'ongoing' &&
-                // Jika user_id tidak ada atau cocok dengan current user
                 (!dryingProcess.user_id || dryingProcess.user_id === currentUserId) &&
                 (!dryerId || String(dryingProcess.dryer_id) === String(dryerId));
 
@@ -2695,45 +2632,28 @@
             }
 
             if (isValidOngoingProcess) {
-                // ✅ PROSES ONGOING VALID - UI AKTIF
-                console.log('✅ DETECTED VALID ONGOING PROCESS - SETTING UI TO AKTIF');
+                // console.log('✅ DETECTED VALID ONGOING PROCESS - SETTING UI TO AKTIF');
 
                 statusText.innerText = 'Aktif';
-                // toggleButton.innerText = 'STOP';
-                // toggleButton.removeAttribute('data-bs-toggle');
-                // toggleButton.removeAttribute('data-bs-target');
-                // toggleButton.onclick = () => showConfirmStopModal(dryingProcess.process_id);
-
-                // Update toggle button functionality
                 toggleButton.innerText = 'STOP';
                 toggleButton.removeAttribute('data-bs-toggle');
                 toggleButton.removeAttribute('data-bs-target');
-
-                // Set onclick handler dengan processId yang valid
                 toggleButton.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     showConfirmStopModal(dryingProcess.process_id);
                 };
 
-                // Update durasi dari process
                 if (dryingProcess.durasi_rekomendasi && dryingProcess.durasi_rekomendasi > 0) {
                     durasiText.innerText = formatDuration(dryingProcess.durasi_rekomendasi);
                 } else {
                     durasiText.innerText = '0 menit';
                 }
 
-                // Start monitoring untuk auto-complete
-                // if (!sensorInterval) {
-                //     startSensorMonitoring(dryingProcess.process_id);
-                // }
-
-                // Simpan process_id
                 localStorage.setItem('active_process_id', String(dryingProcess.process_id));
 
             } else {
-                // ❌ TIDAK ADA PROSES VALID - UI NONAKTIF
-                console.log('❌ No valid ongoing process - UI Nonaktif');
+                // console.log('❌ No valid ongoing process - UI Nonaktif');
 
                 statusText.innerText = 'Nonaktif';
                 toggleButton.innerText = 'START';
@@ -2742,13 +2662,6 @@
                 toggleButton.onclick = null;
                 durasiText.innerText = '0 menit';
 
-                // Stop monitoring
-                // if (sensorInterval) {
-                //     clearInterval(sensorInterval);
-                //     sensorInterval = null;
-                // }
-
-                // Bersihkan active_process_id jika tidak valid
                 const savedPid = localStorage.getItem('active_process_id');
                 if (savedPid && (!dryingProcess || dryingProcess.process_id !== parseInt(savedPid))) {
                     localStorage.removeItem('active_process_id');
@@ -2780,10 +2693,6 @@
                 kadar_air_target: 14
             };
             sensorDataByDevice = {};
-            // if (sensorInterval) {
-            //     clearInterval(sensorInterval);
-            //     sensorInterval = null;
-            // }
         }
 
         function updateModalForm(sensors) {
@@ -2797,59 +2706,47 @@
                 .avg_combustion_temperature.toFixed(2) : '';
         }
 
-        function startSensorMonitoring(processId) {
-        if (!processId) return;
+        function startSensorMonitoring(dryerId) {
+            if (!dryerId) return;
 
-        // Unsubscribe channel lama dulu
-        if (activeChannel) {
-            window.Echo.leave(activeChannel);
-            activeChannel = null;
+            if (activeChannel) {
+                window.Echo.leave(activeChannel);
+                activeChannel = null;
+            }
+
+            activeChannel = `drying-process.${dryerId}`;
+            console.log(`🔌 Subscribed ke channel: ${activeChannel}`);
+
+            window.Echo.channel(`drying-process.${dryerId}`)
+                .listen('.sensor-updated', (e) => {
+                    console.log("📡 Event sensor diterima:", e);
+                    // Akses data dari e.payload
+                    const data = e.payload || e; // Fallback ke e jika payload tidak ada
+                    if (suhuGabahText && data.suhu_gabah !== undefined) {
+                        suhuGabahText.innerText = `${parseFloat(data.suhu_gabah).toFixed(2)}°C`;
+                    }
+                    if (suhuRuanganText && data.suhu_ruangan !== undefined) {
+                        suhuRuanganText.innerText = `${parseFloat(data.suhu_ruangan).toFixed(2)}°C`;
+                    }
+                    if (kadarAirText && data.kadar_air_gabah !== undefined) {
+                        kadarAirText.innerText = `${parseFloat(data.kadar_air_gabah).toFixed(2)}%`;
+                    }
+                    if (suhuPembakaranText && data.suhu_pembakaran !== undefined) {
+                        suhuPembakaranText.innerText = `${parseFloat(data.suhu_pembakaran).toFixed(2)}°C`;
+                    }
+                    if (data.process_id && data.kadar_air_gabah <= 14) {
+                        console.log("✅ Target moisture tercapai → completeProcess()");
+                        completeProcess(data.process_id);
+                    }
+                });
         }
 
-        activeChannel = `private-drying-process.${processId}`;
-        console.log(`🔌 Subscribed ke channel: ${activeChannel}`);
-
-        window.Echo.private(`drying-process.${processId}`)
-            .listen('.sensor-updated', (e) => {
-                console.log("📡 Event sensor diterima:", e);
-
-                // Update UI sensor
-                if (suhuGabahText && e.suhu_gabah !== undefined) {
-                    suhuGabahText.innerText = `${parseFloat(e.suhu_gabah).toFixed(2)}°C`;
-                }
-                if (suhuRuanganText && e.suhu_ruangan !== undefined) {
-                    suhuRuanganText.innerText = `${parseFloat(e.suhu_ruangan).toFixed(2)}°C`;
-                }
-                if (kadarAirText && e.kadar_air_gabah !== undefined) {
-                    kadarAirText.innerText = `${parseFloat(e.kadar_air_gabah).toFixed(2)}%`;
-                }
-                if (suhuPembakaranText && e.suhu_pembakaran !== undefined) {
-                    suhuPembakaranText.innerText = `${parseFloat(e.suhu_pembakaran).toFixed(2)}°C`;
-                }
-
-                // Auto complete jika target moisture tercapai
-                if (e.process_id && e.kadar_air_gabah <= 14) {
-                    console.log("✅ Target moisture tercapai → completeProcess()");
-                    completeProcess(e.process_id);
-                }
-            });
-    }
-
-        // function showConfirmStopModal(processId) {
-        //     const confirmButton = document.getElementById('confirmStopButton');
-        //     confirmButton.onclick = () => completeProcess(processId);
-        //     const modal = new bootstrap.Modal(document.getElementById('confirmStopModal'));
-        //     modal.show();
-        // }
-
         function showConfirmStopModal(processId) {
-            // Validasi processId
             if (!processId || isNaN(parseInt(processId))) {
                 showNotification('Error', 'ID proses tidak valid', 'error');
                 return;
             }
 
-            // Set processId ke confirm button
             const confirmButton = document.getElementById('confirmStopButton');
             const modalElement = document.getElementById('confirmStopModal');
 
@@ -2858,21 +2755,15 @@
                 return;
             }
 
-            // Hapus event listener sebelumnya untuk menghindari multiple bindings
             confirmButton.onclick = null;
             confirmButton.dataset.processId = processId;
 
-            // Set onclick handler baru
             confirmButton.onclick = function() {
-                // ✅ PERBAIKAN: Hapus onclick handler setelah di-set
                 this.onclick = null;
-
-                // ✅ PERBAIKAN: Dapatkan modal instance dan tutup modal
                 const modal = bootstrap.Modal.getInstance(modalElement);
                 if (modal) {
                     modal.hide();
                 } else {
-                    // Fallback: sembunyikan modal secara manual
                     modalElement.classList.remove('show');
                     modalElement.style.display = 'none';
                     document.querySelector('.modal-backdrop')?.remove();
@@ -2881,16 +2772,14 @@
                     document.body.style.paddingRight = '';
                 }
 
-                // ✅ PERBAIKAN: Delay sebentar untuk memastikan modal tertutup
                 setTimeout(() => {
                     completeProcess(processId);
                 }, 300);
             };
 
-            // Show modal
             const modal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static', // Modal tidak bisa ditutup dengan klik backdrop
-                keyboard: false // Modal tidak bisa ditutup dengan ESC
+                backdrop: 'static',
+                keyboard: false
             });
             modal.show();
         }
@@ -2904,7 +2793,6 @@
                 return;
             }
 
-            // ✅ PERBAIKAN: Tampilkan loading notification
             const loadingNotification = showNotification(
                 'Menyelesaikan Proses...',
                 'Menyimpan data akhir proses pengeringan...',
@@ -2913,15 +2801,13 @@
             );
 
             try {
-                // 1. Validasi processId
                 if (!processId || isNaN(parseInt(processId))) {
                     throw new Error('ID proses tidak valid');
                 }
 
-                console.log('🔄 Memulai proses complete untuk processId:', processId);
+                // console.log('🔄 Memulai proses complete untuk processId:', processId);
 
-                // 2. Ambil data sensor terbaru untuk kadar_air_akhir
-                let kadarAirAkhir = 14.0; // Default fallback
+                let kadarAirAkhir = 14.0;
                 try {
                     const sensorResponse = await fetch(
                         `${baseUrl}/get_sensor/realtime?user_id=${userId}&process_id=${processId}`, {
@@ -2938,7 +2824,7 @@
                             const sensorKadar = parseFloat(sensorData.sensors.avg_grain_moisture);
                             if (!isNaN(sensorKadar) && sensorKadar >= 0 && sensorKadar <= 100) {
                                 kadarAirAkhir = parseFloat(sensorKadar.toFixed(2));
-                                console.log('✅ Sensor kadar air:', kadarAirAkhir);
+                                // console.log('✅ Sensor kadar air:', kadarAirAkhir);
                             }
                         }
                     } else {
@@ -2948,20 +2834,10 @@
                     console.warn('⚠️ Gagal ambil sensor data, menggunakan default 14.0%:', sensorErr);
                 }
 
-                // 3. Siapkan data untuk API - HANYA FIELDS YANG VALIDASI
                 const completeData = {
-                    kadar_air_akhir: parseFloat(kadarAirAkhir.toFixed(2)), // Pastikan numeric
+                    kadar_air_akhir: parseFloat(kadarAirAkhir.toFixed(2)),
                 };
 
-                console.log('📤 Data untuk API complete:', {
-                    processId,
-                    completeData,
-                    kadarAirAkhir: typeof kadarAirAkhir,
-                    isValidKadar: (typeof kadarAirAkhir === 'number' && kadarAirAkhir >= 0 && kadarAirAkhir <=
-                        100)
-                });
-
-                // 4. Kirim request ke API
                 const response = await fetch(
                     `${baseUrl}/drying-process/${processId}/complete`, {
                         method: 'POST',
@@ -2975,174 +2851,93 @@
                     }
                 );
 
-                console.log('📡 API Response Status:', response.status, response.statusText);
+                // console.log('📡 API Response Status:', response.status, response.statusText);
 
-                // 5. Handle response dengan error handling yang lebih baik
                 if (!response.ok) {
                     let errorMessage = `HTTP ${response.status}: `;
-
                     try {
                         const errorData = await response.json();
                         console.error('❌ API Error Data:', errorData);
-
-                        // Extract error message yang lebih spesifik
-                        if (errorData.error) {
-                            errorMessage = errorData.error;
-                        } else if (errorData.message) {
-                            errorMessage = errorData.message;
-                        } else if (errorData.errors) {
-                            // Validation errors
-                            const firstError = Object.values(errorData.errors)[0];
-                            errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
-                        } else {
-                            errorMessage += response.statusText;
-                        }
-
+                        errorMessage = errorData.error || errorData.message || errorData.errors ? Object.values(
+                            errorData.errors)[0] : response.statusText;
                     } catch (parseErr) {
                         console.error('❌ Failed to parse error response:', parseErr);
                         errorMessage += response.statusText || 'Unknown server error';
                     }
-
-                    // ✅ PERBAIKAN: Tutup loading notification sebelum error
-                    if (loadingNotification && loadingNotification._hideTimer) {
-                        clearTimeout(loadingNotification._hideTimer);
-                        loadingNotification.classList.remove('visible');
-                    }
-
                     throw new Error(errorMessage);
                 }
 
-                // 6. Parse successful response
                 let result;
                 try {
                     result = await response.json();
-                    console.log('✅ API Success Response:', result);
+                    // console.log('✅ API Success Response:', result);
                 } catch (parseErr) {
                     console.error('❌ Failed to parse success response:', parseErr);
                     throw new Error('Invalid response format from server');
                 }
 
-                // 7. Validasi response structure
                 if (!result || result.success !== true) {
                     throw new Error(result?.message || result?.error || 'Respons API tidak valid');
                 }
 
-                // 8. ✅ PERBAIKAN: Tutup loading notification
                 if (loadingNotification && loadingNotification._hideTimer) {
                     clearTimeout(loadingNotification._hideTimer);
                     loadingNotification.classList.remove('visible');
                 }
 
-                // 9. Update local storage
                 localStorage.removeItem('active_process_id');
 
-                // 10. Buat pesan sukses yang informatif
                 const processData = result.data || {};
                 let successMessage = `Proses pengeringan berhasil diselesaikan!`;
 
-                // // Durasi
-                // if (processData.durasi_terlaksana) {
-                //     const totalMinutes = parseInt(processData.durasi_terlaksana);
-                //     const hours = Math.floor(totalMinutes / 60);
-                //     const minutes = totalMinutes % 60;
-                //     const durasiText = hours > 0 ? `${hours} jam ${minutes} menit` : `${minutes} menit`;
-                //     successMessage += `\n\n⏱️ Durasi Total: ${durasiText}`;
-                // }
-
-                // // Kadar air akhir
-                // if (processData.kadar_air_akhir !== null && processData.kadar_air_akhir !== undefined) {
-                //     successMessage += `\n💧 Kadar Air Akhir: ${parseFloat(processData.kadar_air_akhir).toFixed(2)}%`;
-                // }
-
-                // // Status
-                // if (processData.status) {
-                //     successMessage += `\n\n📊 Status: ${processData.status.toUpperCase()}`;
-                // }
-
-                // // Timestamp selesai
-                // if (processData.timestamp_selesai) {
-                //     const selesaiDate = new Date(processData.timestamp_selesai);
-                //     if (!isNaN(selesaiDate)) {
-                //         successMessage += `\n\n📅 Selesai: ${selesaiDate.toLocaleString('id-ID', {
-            //             year: 'numeric',
-            //             month: 'long', 
-            //             day: 'numeric',
-            //             hour: '2-digit',
-            //             minute: '2-digit'
-            //         })}`;
-                //     }
-                // }
-
-                // ✅ PERBAIKAN: Delay notifikasi sukses untuk memastikan modal tertutup
                 setTimeout(() => {
-                    // 11. Tampilkan notifikasi sukses dengan auto-reload
                     showNotification(
                         'Berhasil Diselesaikan',
                         successMessage,
                         'success',
-                        5000, // Durasi notifikasi 5 detik
-                        true // Auto reload setelah notifikasi hilang
+                        5000,
+                        true
                     );
                 }, 500);
 
-                // 12. ✅ PERBAIKAN: Update UI SEGERA setelah API success
                 setTimeout(() => {
-                    console.log('🔄 Updating UI after successful completion...');
-
-                    // Reset status ke Nonaktif
+                    // console.log('🔄 Updating UI after successful completion...');
                     if (statusText) {
                         statusText.innerText = 'Nonaktif';
-                        statusText.style.color = '#ffffff'; // Reset warna
+                        statusText.style.color = '#ffffff';
                     }
-
                     if (toggleButton) {
                         toggleButton.innerText = 'START';
-                        toggleButton.classList.remove('btn-stop'); // Hapus class khusus stop
+                        toggleButton.classList.remove('btn-stop');
                         toggleButton.setAttribute('data-bs-toggle', 'modal');
                         toggleButton.setAttribute('data-bs-target', '#tambahDataModal');
                         toggleButton.onclick = null;
-                        toggleButton.style.background = ''; // Reset style
+                        toggleButton.style.background = '';
                     }
-
-                    // Reset sensor readings
                     if (kadarAirText) kadarAirText.innerText = '0.00%';
                     if (suhuGabahText) suhuGabahText.innerText = '0°C';
                     if (suhuRuanganText) suhuRuanganText.innerText = '0°C';
                     if (suhuPembakaranText) suhuPembakaranText.innerText = '0°C';
                     if (durasiText) durasiText.innerText = '0 menit';
-
-                    // Stop monitoring
-                    // if (sensorInterval) {
-                    //     clearInterval(sensorInterval);
-                    //     sensorInterval = null;
-                    //     console.log('⏹️ Sensor monitoring stopped');
-                    // }
-
-                    // Update sidebar
                     if (window.updateSidebar) {
                         window.updateSidebar();
-                        console.log('📋 Sidebar updated');
+                        // console.log('📋 Sidebar updated');
                     }
+                    // console.log('✅ UI updated successfully');
+                }, 100);
 
-                    console.log('✅ UI updated successfully');
-                }, 100); // Update UI segera setelah API success
-
-                console.log('🎉 Complete process successful:', processData);
+                // console.log('🎉 Complete process successful:', processData);
 
             } catch (err) {
                 console.error('❌ Complete process error:', err);
-
-                // ✅ PERBAIKAN: Tutup loading notification saat error
                 if (loadingNotification && loadingNotification._hideTimer) {
                     clearTimeout(loadingNotification._hideTimer);
                     loadingNotification.classList.remove('visible');
                 }
 
-                // Handle specific error cases
                 let errorTitle = 'Gagal Menyelesaikan Proses';
                 let errorMessage = err.message || 'Terjadi kesalahan yang tidak diketahui';
 
-                // Specific error handling
                 if (err.message.includes('401') || err.message.includes('Unauthorized')) {
                     errorTitle = 'Sesi Login Berakhir';
                     errorMessage = 'Silakan login kembali.';
@@ -3163,18 +2958,7 @@
                     errorMessage = 'Server mengalami masalah. Coba lagi dalam beberapa saat.';
                 }
 
-                // Tampilkan error notification
                 showNotification(errorTitle, errorMessage, 'error', 6000);
-
-                // ✅ PERBAIKAN: Re-enable monitoring jika masih ada proses ongoing
-                const savedPid = localStorage.getItem('active_process_id');
-                if (savedPid) {
-                    setTimeout(() => {
-                        fetchSensorData(savedPid).catch(err => console.warn('Failed to resume monitoring:',
-                            err));
-                        if (window.updateSidebar) window.updateSidebar();
-                    }, 2000);
-                }
             }
         }
 
@@ -3187,371 +2971,337 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-        statusText = document.getElementById('statusText');
-        kadarAirText = document.getElementById('kadarAirText');
-        suhuGabahText = document.getElementById('suhuGabahText');
-        suhuRuanganText = document.getElementById('suhuRuanganText');
-        suhuPembakaranText = document.getElementById('suhuPembakaranText');
-        durasiText = document.getElementById('durasiText');
-        toggleButton = document.getElementById('toggleButton');
-        suhuGabahInput = document.getElementById('suhu_gabah');
-        suhuRuanganInput = document.getElementById('suhu_ruangan');
-        kadarAirGabahInput = document.getElementById('kadar_air_gabah');
-        suhuPembakaranInput = document.getElementById('suhu_pembakaran');
+            statusText = document.getElementById('statusText');
+            kadarAirText = document.getElementById('kadarAirText');
+            suhuGabahText = document.getElementById('suhuGabahText');
+            suhuRuanganText = document.getElementById('suhuRuanganText');
+            suhuPembakaranText = document.getElementById('suhuPembakaranText');
+            durasiText = document.getElementById('durasiText');
+            toggleButton = document.getElementById('toggleButton');
+            suhuGabahInput = document.getElementById('suhu_gabah');
+            suhuRuanganInput = document.getElementById('suhu_ruangan');
+            kadarAirGabahInput = document.getElementById('kadar_air_gabah');
+            suhuPembakaranInput = document.getElementById('suhu_pembakaran');
 
-        // Load dryers (fungsi lama)
-        fetchGlobalDryers().then(() => {
-            console.log('Dryers loaded');
+            fetchGlobalDryers().then(() => {
+                // console.log('Dryers loaded');
+                const savedDryerId = localStorage.getItem('selected_dryer_id');
+                const globalDryerSelect = document.getElementById('global_dryer_id');
 
-            const savedDryerId = localStorage.getItem('selected_dryer_id');
-            const globalDryerSelect = document.getElementById('global_dryer_id');
+                if (savedDryerId && globalDryerSelect && globalDryerSelect.value !== savedDryerId) {
+                    globalDryerSelect.value = savedDryerId;
+                    updateGlobalDryerId();
+                }
 
-            if (savedDryerId && globalDryerSelect && globalDryerSelect.value !== savedDryerId) {
-                globalDryerSelect.value = savedDryerId;
-                updateGlobalDryerId();
-            }
-
-            if (savedDryerId) {
-                fetchSensorData(null);
-                window.updateSidebar();
-            } else {
-                showNotification('Pilih Bed Dryer',
-                    'Silakan pilih bed dryer untuk melihat data sensor.', 'bg-info');
-            }
+                if (savedDryerId) {
+                    fetchSensorData(null);
+                    startSensorMonitoring(savedDryerId);
+                } else {
+                    showNotification('Pilih Bed Dryer',
+                        'Silakan pilih bed dryer untuk melihat data sensor.', 'bg-info');
+                }
+            });
         });
 
-        // Restore proses aktif (langsung subscribe ke channel)
-        const savedPid = localStorage.getItem('active_process_id');
-        if (savedPid) {
-            console.log("♻️ Restore subscription:", savedPid);
-            startSensorMonitoring(savedPid);
-            statusText.innerText = 'Aktif';
-            toggleButton.innerText = 'STOP';
-            toggleButton.removeAttribute('data-bs-toggle');
-            toggleButton.removeAttribute('data-bs-target');
-            toggleButton.onclick = () => showConfirmStopModal(savedPid);
-        }
-    });
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-        // === SUBMIT PREDIKSI ===
-        // === SUBMIT PREDIKSI ===
-document.getElementById('predictForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+            const predictButton = document.getElementById('predictButton');
+            const predictButtonText = document.getElementById('predictButtonText');
+            const predictButtonLoading = document.getElementById('predictButtonLoading');
+            const modalElement = document.getElementById('tambahDataModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            const errorMessageDiv = document.getElementById('errorMessage');
 
-    // UI elements
-    const predictButton = document.getElementById('predictButton');
-    const predictButtonText = document.getElementById('predictButtonText');
-    const predictButtonLoading = document.getElementById('predictButtonLoading');
-    const modalElement = document.getElementById('tambahDataModal');
-    const modal = bootstrap.Modal.getInstance(modalElement);
-    const errorMessageDiv = document.getElementById('errorMessage');
-
-    // Reset error display
-    if (errorMessageDiv) {
-        errorMessageDiv.style.display = 'none';
-        errorMessageDiv.innerHTML = '';
-    }
-
-    try {
-        // 1. Get sanctum_token and user_id
-        const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/[\n\r]+/g, '').trim();
-        const userId = "{{ auth()->id() ?? '' }}";
-
-        console.log('🔑 Authentication data:', { sanctumToken, userId });
-
-        // 2. Validate sanctum_token and user_id
-        if (!sanctumToken) {
-            showNotification('Anda harus login untuk menyimpan data prediksi.', 'bg-red-500');
-            setTimeout(() => window.location.href = '{{ route("login") }}', 2000);
-            throw new Error('No sanctum token');
-        }
-        if (!userId || isNaN(userId)) {
-            showNotification('User ID tidak ditemukan. Silakan login kembali.', 'bg-red-500');
-            setTimeout(() => window.location.href = '{{ route("login") }}', 2000);
-            throw new Error('No user ID');
-        }
-
-        // 3. Get form input values
-        const grainTypeId = parseInt(document.getElementById('jenis_gabah').value);
-        const beratGabah = parseFloat(document.getElementById('berat_gabah').value);
-        const kadarAirTarget = parseFloat(document.getElementById('kadar_air_target').value);
-        const dryerId = localStorage.getItem('selected_dryer_id');
-
-        console.log('📋 Input values:', {
-            grainTypeId,
-            beratGabah,
-            kadarAirTarget,
-            dryerId
-        });
-
-        // 4. Basic validation
-        if (!dryerId) {
-            showSensorError('Pilih Bed Dryer Terlebih Dahulu',
-                'Form prediksi memerlukan bed dryer yang dipilih.', 'warning');
-            throw new Error('No dryer selected');
-        }
-
-        if (isNaN(grainTypeId) || !grainTypeId) {
-            showSensorError('Pilih Jenis Gabah', 'Jenis gabah harus dipilih dari dropdown.', 'warning');
-            throw new Error('Jenis gabah harus dipilih');
-        }
-
-        if (isNaN(beratGabah) || beratGabah < 0.1) {
-            showSensorError('Berat Gabah Tidak Valid', 'Berat gabah harus minimal 0.1 kg.', 'warning');
-            throw new Error('Berat gabah minimal 0.1 kg');
-        }
-
-        if (isNaN(kadarAirTarget) || kadarAirTarget < 0 || kadarAirTarget > 100) {
-            showSensorError('Target Kadar Air Tidak Valid', 'Target kadar air harus antara 0-100%.',
-                'warning');
-            throw new Error('Target kadar air 0-100%');
-        }
-
-        // 5. Show loading state
-        predictButton.disabled = true;
-        predictButtonText.classList.add('hidden');
-        predictButtonLoading.classList.remove('hidden');
-
-        console.log('📡 Fetching sensor data...');
-
-        // 6. Fetch sensor data
-        const sensorData = await fetchSensorData(null);
-        console.log('📊 Sensor data received:', sensorData);
-
-        if (!sensorData || !sensorData.sensors) {
-            showSensorError('Sensor Tidak Tersedia',
-                'Gagal mengambil data sensor. Pastikan bed dryer terhubung.', 'error');
-            throw new Error('No sensor data');
-        }
-
-        const s = sensorData.sensors;
-
-        // 7. Extract dan validasi sensor values
-        const sensorValues = {
-            kadar_air_gabah: typeof s.avg_grain_moisture === 'number' ? parseFloat(s.avg_grain_moisture.toFixed(2)) : null,
-            suhu_gabah: typeof s.avg_grain_temperature === 'number' ? parseFloat(s.avg_grain_temperature.toFixed(2)) : null,
-            suhu_ruangan: typeof s.avg_room_temperature === 'number' ? parseFloat(s.avg_room_temperature.toFixed(2)) : null,
-            suhu_pembakaran: (s.avg_combustion_temperature !== null && typeof s.avg_combustion_temperature === 'number')
-                ? parseFloat(s.avg_combustion_temperature.toFixed(2))
-                : null
-        };
-
-        console.log('🔍 Sensor values extracted:', sensorValues);
-
-        // ✅ Update input modal langsung dengan nilai sensor terbaru
-        updateModalForm(s);
-
-        // 8. Validasi sensor tidak boleh 0
-        const requiredSensors = {
-            'kadar_air_gabah': { name: 'Kadar Air Gabah', min: 0.1, max: 100 },
-            'suhu_gabah': { name: 'Suhu Gabah', min: 10, max: 80 },
-            'suhu_ruangan': { name: 'Suhu Ruangan', min: 15, max: 40 }
-        };
-
-        const invalidSensors = [];
-        for (const [key, config] of Object.entries(requiredSensors)) {
-            const value = sensorValues[key];
-            if (value === null || value === 0 || value < config.min || value > config.max) {
-                invalidSensors.push(`${config.name} (${value || 'kosong'})`);
+            if (errorMessageDiv) {
+                errorMessageDiv.style.display = 'none';
+                errorMessageDiv.innerHTML = '';
             }
-        }
 
-        if (invalidSensors.length > 0) {
-            const errorMsg = `Sensor berikut tidak valid atau bernilai 0:\n• ${invalidSensors.join('\n• ')}`;
-            showSensorError('Data Sensor Tidak Valid', errorMsg, 'warning');
-            throw new Error('Data sensor bernilai nol');
-        }
-
-        // 9. Validasi suhu_pembakaran (opsional tapi harus > 0 jika ada)
-        if (sensorValues.suhu_pembakaran !== null && sensorValues.suhu_pembakaran <= 0) {
-            console.warn('⚠️ Suhu pembakaran <= 0, menggunakan nilai default');
-            sensorValues.suhu_pembakaran = null;
-        }
-
-        // 10. Buat payload untuk ML server dengan sanctum_token
-        const payloadForFlask = {
-            grain_type_id: String(grainTypeId),
-            dryer_id: String(dryerId),
-            kadar_air_target: String(kadarAirTarget),
-            berat_gabah: String(beratGabah),
-            kadar_air_gabah: String(sensorValues.kadar_air_gabah),
-            suhu_gabah: String(sensorValues.suhu_gabah),
-            suhu_ruangan: String(sensorValues.suhu_ruangan),
-            suhu_pembakaran: sensorValues.suhu_pembakaran ? String(sensorValues.suhu_pembakaran) : '0.00',
-            user_id: String(userId),
-            sanctum_token: sanctumToken
-        };
-
-        console.log('🚀 Payload for ML server:', payloadForFlask);
-
-        // 11. Cek koneksi ML server
-        const mlAvailable = await checkMLServer();
-        if (!mlAvailable) {
-            showSensorError('Server Prediksi Offline',
-                'Server ML sedang tidak tersedia. Coba lagi nanti.', 'error');
-            throw new Error('ML server unavailable');
-        }
-
-        // 12. Kirim ke ML server
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-        console.log('🌐 Sending request to ML server...');
-        const resp = await fetch(`${mlServerUrl}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payloadForFlask),
-            mode: 'cors',
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        console.log('📡 ML server response status:', resp.status);
-
-        if (!resp.ok) {
-            let errorText;
             try {
-                const errorData = await resp.json();
-                errorText = errorData.error || await resp.text();
-            } catch {
-                errorText = await resp.text();
+                const sanctumToken = "{{ session('sanctum_token') ?? '' }}".replace(/[\n\r]+/g, '').trim();
+                const userId = "{{ auth()->id() ?? '' }}";
+
+                if (!sanctumToken) {
+                    showNotification('Anda harus login untuk menyimpan data prediksi.', 'bg-red-500');
+                    setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
+                    throw new Error('No sanctum token');
+                }
+                if (!userId || isNaN(userId)) {
+                    showNotification('User ID tidak ditemukan. Silakan login kembali.', 'bg-red-500');
+                    setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
+                    throw new Error('No user ID');
+                }
+
+                const grainTypeId = parseInt(document.getElementById('jenis_gabah').value);
+                const beratGabah = parseFloat(document.getElementById('berat_gabah').value);
+                const kadarAirTarget = parseFloat(document.getElementById('kadar_air_target').value);
+                const dryerId = localStorage.getItem('selected_dryer_id');
+
+                if (!dryerId) {
+                    showSensorError('Pilih Bed Dryer Terlebih Dahulu',
+                        'Form prediksi memerlukan bed dryer yang dipilih.', 'warning');
+                    throw new Error('No dryer selected');
+                }
+
+                if (isNaN(grainTypeId) || !grainTypeId) {
+                    showSensorError('Pilih Jenis Gabah', 'Jenis gabah harus dipilih dari dropdown.', 'warning');
+                    throw new Error('Jenis gabah harus dipilih');
+                }
+
+                if (isNaN(beratGabah) || beratGabah < 0.1) {
+                    showSensorError('Berat Gabah Tidak Valid', 'Berat gabah harus minimal 0.1 kg.', 'warning');
+                    throw new Error('Berat gabah minimal 0.1 kg');
+                }
+
+                if (isNaN(kadarAirTarget) || kadarAirTarget < 0 || kadarAirTarget > 100) {
+                    showSensorError('Target Kadar Air Tidak Valid', 'Target kadar air harus antara 0-100%.',
+                        'warning');
+                    throw new Error('Target kadar air 0-100%');
+                }
+
+                predictButton.disabled = true;
+                predictButtonText.classList.add('hidden');
+                predictButtonLoading.classList.remove('hidden');
+
+                // console.log('📡 Fetching sensor data...');
+
+                const sensorData = await fetchSensorData(null);
+                // console.log('📊 Sensor data received:', sensorData);
+
+                if (!sensorData || !sensorData.sensors) {
+                    showSensorError('Sensor Tidak Tersedia',
+                        'Gagal mengambil data sensor. Pastikan bed dryer terhubung.', 'error');
+                    throw new Error('No sensor data');
+                }
+
+                const s = sensorData.sensors;
+
+                const sensorValues = {
+                    kadar_air_gabah: typeof s.avg_grain_moisture === 'number' ? parseFloat(s
+                        .avg_grain_moisture.toFixed(2)) : null,
+                    suhu_gabah: typeof s.avg_grain_temperature === 'number' ? parseFloat(s
+                        .avg_grain_temperature.toFixed(2)) : null,
+                    suhu_ruangan: typeof s.avg_room_temperature === 'number' ? parseFloat(s
+                        .avg_room_temperature.toFixed(2)) : null,
+                    suhu_pembakaran: (s.avg_combustion_temperature !== null && typeof s
+                            .avg_combustion_temperature === 'number') ?
+                        parseFloat(s.avg_combustion_temperature.toFixed(2)) : null
+                };
+
+                // console.log('🔍 Sensor values extracted:', sensorValues);
+
+                updateModalForm(s);
+
+                const requiredSensors = {
+                    'kadar_air_gabah': {
+                        name: 'Kadar Air Gabah',
+                        min: 0.1,
+                        max: 100
+                    },
+                    'suhu_gabah': {
+                        name: 'Suhu Gabah',
+                        min: 10,
+                        max: 80
+                    },
+                    'suhu_ruangan': {
+                        name: 'Suhu Ruangan',
+                        min: 15,
+                        max: 40
+                    }
+                };
+
+                const invalidSensors = [];
+                for (const [key, config] of Object.entries(requiredSensors)) {
+                    const value = sensorValues[key];
+                    if (value === null || value === 0 || value < config.min || value > config.max) {
+                        invalidSensors.push(`${config.name} (${value || 'kosong'})`);
+                    }
+                }
+
+                if (invalidSensors.length > 0) {
+                    const errorMsg =
+                        `Sensor berikut tidak valid atau bernilai 0:\n• ${invalidSensors.join('\n• ')}`;
+                    showSensorError('Data Sensor Tidak Valid', errorMsg, 'warning');
+                    throw new Error('Data sensor bernilai nol');
+                }
+
+                if (sensorValues.suhu_pembakaran !== null && sensorValues.suhu_pembakaran <= 0) {
+                    console.warn('⚠️ Suhu pembakaran <= 0, menggunakan nilai default');
+                    sensorValues.suhu_pembakaran = null;
+                }
+
+                const payloadForFlask = {
+                    grain_type_id: String(grainTypeId),
+                    dryer_id: String(dryerId),
+                    kadar_air_target: String(kadarAirTarget),
+                    berat_gabah: String(beratGabah),
+                    kadar_air_gabah: String(sensorValues.kadar_air_gabah),
+                    suhu_gabah: String(sensorValues.suhu_gabah),
+                    suhu_ruangan: String(sensorValues.suhu_ruangan),
+                    suhu_pembakaran: sensorValues.suhu_pembakaran ? String(sensorValues.suhu_pembakaran) :
+                        '0.00',
+                    user_id: String(userId),
+                    sanctum_token: sanctumToken
+                };
+
+                // console.log('🚀 Payload for ML server:', payloadForFlask);
+
+                const mlAvailable = await checkMLServer();
+                if (!mlAvailable) {
+                    showSensorError('Server Prediksi Offline',
+                        'Server ML sedang tidak tersedia. Coba lagi nanti.', 'error');
+                    throw new Error('ML server unavailable');
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                // console.log('🌐 Sending request to ML server...');
+                const resp = await fetch(`${mlServerUrl}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payloadForFlask),
+                    mode: 'cors',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                // console.log('📡 ML server response status:', resp.status);
+
+                if (!resp.ok) {
+                    let errorText;
+                    try {
+                        const errorData = await resp.json();
+                        errorText = errorData.error || await resp.text();
+                    } catch {
+                        errorText = await resp.text();
+                    }
+                    console.error('❌ ML server error:', errorText);
+                    showSensorError('Server Prediksi Error',
+                        `HTTP ${resp.status}: ${errorText.substring(0, 100)}`, 'error');
+                    throw new Error(`ML server error: ${resp.status} - ${errorText}`);
+                }
+
+                let result;
+                try {
+                    result = await resp.json();
+                    // console.log('✅ ML server response:', result);
+                } catch (parseErr) {
+                    console.error('❌ ML response parse error:', parseErr);
+                    const rawText = await resp.text();
+                    showSensorError('Respons Server Tidak Valid', `Error parsing: ${rawText.substring(0, 100)}`,
+                        'error');
+                    throw new Error(`Invalid ML response: ${parseErr.message}`);
+                }
+
+                const processId = result.process_id ? parseInt(result.process_id) : null;
+                let durasiMenit = null;
+
+                if (typeof result.durasi_rekomendasi === 'number') {
+                    durasiMenit = result.durasi_rekomendasi;
+                } else if (typeof result.durasi_rekomendasi === 'string') {
+                    durasiMenit = parseFloat(result.durasi_rekomendasi);
+                }
+
+                if (!processId || isNaN(processId) || processId <= 0) {
+                    showSensorError('ID Proses Tidak Valid',
+                        'ML server tidak mengembalikan ID proses yang valid.', 'error');
+                    throw new Error('Invalid process ID from ML server');
+                }
+
+                if (!durasiMenit || isNaN(durasiMenit) || durasiMenit <= 0) {
+                    showSensorError('Estimasi Durasi Tidak Valid',
+                        'ML server tidak mengembalikan estimasi durasi yang valid.', 'error');
+                    throw new Error('Invalid duration from ML server');
+                }
+
+                localStorage.setItem('active_process_id', String(processId));
+
+                if (statusText) statusText.innerText = 'Aktif';
+                if (toggleButton) {
+                    toggleButton.innerText = 'STOP';
+                    toggleButton.removeAttribute('data-bs-toggle');
+                    toggleButton.removeAttribute('data-bs-target');
+                    toggleButton.onclick = () => showConfirmStopModal(processId);
+                }
+
+                if (kadarAirText) kadarAirText.innerText = `${sensorValues.kadar_air_gabah.toFixed(2)}%`;
+                if (suhuGabahText) suhuGabahText.innerText = `${sensorValues.suhu_gabah.toFixed(2)}°C`;
+                if (suhuRuanganText) suhuRuanganText.innerText = `${sensorValues.suhu_ruangan.toFixed(2)}°C`;
+                if (suhuPembakaranText) {
+                    suhuPembakaranText.innerText = sensorValues.suhu_pembakaran && sensorValues
+                        .suhu_pembakaran > 0 ?
+                        `${sensorValues.suhu_pembakaran.toFixed(2)}°C` : 'Data tidak tersedia';
+                }
+                if (durasiText) durasiText.innerText = formatDuration(durasiMenit);
+
+                initialData = {
+                    kadar_air_gabah: sensorValues.kadar_air_gabah,
+                    suhu_gabah: sensorValues.suhu_gabah,
+                    suhu_ruangan: sensorValues.suhu_ruangan,
+                    suhu_pembakaran: sensorValues.suhu_pembakaran || 0,
+                    durasi_rekomendasi: durasiMenit,
+                    kadar_air_target: kadarAirTarget
+                };
+
+                if (modal) {
+                    modal.hide();
+                }
+                setTimeout(() => {
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    document.querySelector('.modal-backdrop')?.remove();
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 300);
+
+                showNotification(
+                    'Proses Pengeringan Dimulai',
+                    `Estimasi selesai dalam ${formatDuration(durasiMenit)}`,
+                    'success',
+                    5000
+                );
+
+                if (window.updateSidebar) {
+                    window.updateSidebar();
+                }
+
+
+
+            } catch (err) {
+                console.error('❌ Error (start via ML):', err);
+
+                if (err.message.includes('Invalid sensor data') || err.message.includes(
+                        'Data sensor bernilai nol')) {
+                    showSensorError('Data Sensor Tidak Valid', err.message, 'warning');
+                } else {
+                    showNotification('Gagal Memulai Proses', err.message, 'error', 6000);
+                }
+            } finally {
+                predictButton.disabled = false;
+                predictButtonText.classList.remove('hidden');
+                predictButtonLoading.classList.add('hidden');
             }
-            console.error('❌ ML server error:', errorText);
-            showSensorError('Server Prediksi Error',
-                `HTTP ${resp.status}: ${errorText.substring(0, 100)}`, 'error');
-            throw new Error(`ML server error: ${resp.status} - ${errorText}`);
-        }
+        });
 
-        let result;
-        try {
-            result = await resp.json();
-            console.log('✅ ML server response:', result);
-        } catch (parseErr) {
-            console.error('❌ ML response parse error:', parseErr);
-            const rawText = await resp.text();
-            showSensorError('Respons Server Tidak Valid', `Error parsing: ${rawText.substring(0, 100)}`, 'error');
-            throw new Error(`Invalid ML response: ${parseErr.message}`);
-        }
-
-        // 13. Validasi ML response
-        const processId = result.process_id ? parseInt(result.process_id) : null;
-        let durasiMenit = null;
-
-        if (typeof result.durasi_rekomendasi === 'number') {
-            durasiMenit = result.durasi_rekomendasi;
-        } else if (typeof result.durasi_rekomendasi === 'string') {
-            durasiMenit = parseFloat(result.durasi_rekomendasi);
-        }
-
-        console.log('📊 ML result validation:', { processId, durasiMenit });
-
-        if (!processId || isNaN(processId) || processId <= 0) {
-            showSensorError('ID Proses Tidak Valid',
-                'ML server tidak mengembalikan ID proses yang valid.', 'error');
-            throw new Error('Invalid process ID from ML server');
-        }
-
-        if (!durasiMenit || isNaN(durasiMenit) || durasiMenit <= 0) {
-            showSensorError('Estimasi Durasi Tidak Valid',
-                'ML server tidak mengembalikan estimasi durasi yang valid.', 'error');
-            throw new Error('Invalid duration from ML server');
-        }
-
-        // 14. Update UI dan localStorage
-        localStorage.setItem('active_process_id', String(processId));
-
-        if (statusText) statusText.innerText = 'Aktif';
-
-        if (toggleButton) {
-            toggleButton.innerText = 'STOP';
-            toggleButton.removeAttribute('data-bs-toggle');
-            toggleButton.removeAttribute('data-bs-target');
-            toggleButton.onclick = () => showConfirmStopModal(processId);
-        }
-
-        if (kadarAirText) kadarAirText.innerText = `${sensorValues.kadar_air_gabah.toFixed(2)}%`;
-        if (suhuGabahText) suhuGabahText.innerText = `${sensorValues.suhu_gabah.toFixed(2)}°C`;
-        if (suhuRuanganText) suhuRuanganText.innerText = `${sensorValues.suhu_ruangan.toFixed(2)}°C`;
-        if (suhuPembakaranText) {
-            suhuPembakaranText.innerText = sensorValues.suhu_pembakaran && sensorValues.suhu_pembakaran > 0
-                ? `${sensorValues.suhu_pembakaran.toFixed(2)}°C`
-                : 'Data tidak tersedia';
-        }
-        if (durasiText) durasiText.innerText = formatDuration(durasiMenit);
-
-        initialData = {
-            kadar_air_gabah: sensorValues.kadar_air_gabah,
-            suhu_gabah: sensorValues.suhu_gabah,
-            suhu_ruangan: sensorValues.suhu_ruangan,
-            suhu_pembakaran: sensorValues.suhu_pembakaran || 0,
-            durasi_rekomendasi: durasiMenit,
-            kadar_air_target: kadarAirTarget
-        };
-
-        if (modal) {
-            modal.hide();
-        }
-        setTimeout(() => {
-            modalElement.classList.remove('show');
-            modalElement.style.display = 'none';
-            document.querySelector('.modal-backdrop')?.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-        }, 300);
-
-        // 16. Start monitoring (Realtime Reverb)
-        startSensorMonitoring(processId);
-
-        // 17. Success notification
-        showNotification(
-            'Proses Pengeringan Dimulai',
-            `Estimasi selesai dalam ${formatDuration(durasiMenit)}`,
-            'success',
-            5000
-        );
-
-        if (window.updateSidebar) {
-            window.updateSidebar();
-        }
-
-        console.log('🎉 Proses pengeringan berhasil dimulai:', { processId, durasiMenit });
-
-    } catch (err) {
-        console.error('❌ Error (start via ML):', err);
-
-        if (err.message.includes('Invalid sensor data') || err.message.includes('Data sensor bernilai nol')) {
-            showSensorError('Data Sensor Tidak Valid', err.message, 'warning');
-        } else {
-            showNotification('Gagal Memulai Proses', err.message, 'error', 6000);
-        }
-    } finally {
-        predictButton.disabled = false;
-        predictButtonText.classList.remove('hidden');
-        predictButtonLoading.classList.add('hidden');
-    }
-});
-
-
-        // ✅ PERBAIKAN: Fungsi helper untuk error sensor
         function showSensorError(title, message, type = 'error') {
             const errorMessageDiv = document.getElementById('errorMessage');
             if (errorMessageDiv) {
                 const alertClass = type === 'warning' ? 'alert-warning' : 'alert-danger';
                 errorMessageDiv.innerHTML = `
-            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                <strong>${title}</strong>
-                <div style="margin-top: 4px; font-size: 13px;">${message}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
+                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                        <strong>${title}</strong>
+                        <div style="margin-top: 4px; font-size: 13px;">${message}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
                 errorMessageDiv.style.display = 'block';
             }
-
-            // Juga tampilkan notification
             showNotification(title, message, type === 'warning' ? 'info' : 'error', 6000);
         }
     </script>
