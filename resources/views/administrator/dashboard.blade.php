@@ -505,7 +505,7 @@ function startWebSocket(dryerId) {
 
 // Fetch data awal
 function fetchInitialData() {
-    const baseUrl = '{{ config('services.api.base_url') }}';
+    const baseUrl = 'http://127.0.0.1:3333/api';
     const endpoint = baseUrl.endsWith('/') ? `${baseUrl}get_sensor/realtime` : `${baseUrl}/get_sensor/realtime`;
     console.log('Fetching initial data from:', endpoint);
     fetch(endpoint, {

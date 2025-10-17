@@ -1,0 +1,415 @@
+@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .icon-spin {
+            animation: spin 1s linear infinite;
+        }
+
+
+        @media (max-width: 1024px) {
+            body {
+                background-size: 80%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background-size: 100%;
+            }
+        }
+
+        .nav-item {
+            @apply relative font-medium text-[#1E3A8A] hover:font-bold hover:border-b-2 hover:border-[#1E3A8A] block py-2;
+        }
+
+        .nav-item.active {
+            font-weight: 700;
+            border-bottom: 2px solid #1E3A8A;
+        }
+
+        .btn-detail-number {
+            background-color: #C4D4FF;
+            color: #1E3B8A;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-weight: bold;
+            transition: background-color .3s, transform .2s;
+            border: none;
+            cursor: pointer
+        }
+
+        .btn-detail-number:hover {
+            background-color: #A0B8FF;
+            transform: scale(1.05)
+        }
+
+        .mini-sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 60%;
+            transform: translateX(-50%);
+            width: 360px;
+            height: 95px;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, .1);
+            transition: height .3s;
+            z-index: 1000;
+            overflow: hidden
+        }
+
+        .mini-sidebar.expanded {
+            height: 330px;
+            width: 360px;
+        }
+
+        .content-sidebar {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .expand-handle {
+            width: 40px;
+            height: 4px;
+            background: #1E3A8A;
+            border-radius: 2px;
+            margin: 0 auto;
+            cursor: pointer
+        }
+
+        .duration-option {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            background: #1f46811f;
+            border-radius: 6px;
+            transition: background-color .2s;
+            font-size: 18px
+        }
+
+        .duration-option:hover {
+            background: #1f468133
+        }
+
+        .detail-section {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e5e7eb;
+            padding-left: 8px
+        }
+
+        .expanded .detail-section {
+            display: flex
+        }
+
+        .no-process {
+            color: #6b7280;
+            font-size: 13px;
+            text-align: center;
+            padding: 8px
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin: 0
+        }
+
+        p {
+            font-size: 15px;
+            color: #374151;
+            margin: 4px 0
+        }
+
+        .span {
+            font-weight: 500;
+            color: #1e3a8a
+        }
+
+        .btn-mulai {
+            background: #C4D4FF;
+            color: #1E3B8A;
+            border-radius: 15px;
+            padding: 5px;
+            width: 78px;
+            font-weight: bold;
+            transition: background-color .3s, transform .2s
+        }
+
+        .btn-mulai:hover {
+            background: #A0B8FF;
+            color: #0D2F6A;
+            transform: scale(1.05)
+        }
+
+        .btn-selesai {
+            background: #b8f7c6;
+            color: #00791C;
+            border-radius: 15px;
+            padding: 5px;
+            width: 78px;
+            font-weight: bold;
+            transition: background-color .3s, transform .2s
+        }
+
+        .btn-selesai:hover {
+            background: #95f4a4;
+            color: #005B12;
+            transform: scale(1.05)
+        }
+
+        .btn-detail {
+            background: #89a5d5;
+            color: #fff;
+            border-radius: 15px;
+            padding: 5px 15px;
+            font-weight: bold;
+            transition: background-color .3s, transform .2s
+        }
+
+        .btn-detail:hover {
+            background: #C4D4FF;
+            transform: scale(1.05)
+        }
+
+        /* Notification improvements untuk type 'info' */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-width: 90vw;
+            padding: 16px;
+            border-radius: 8px;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            line-height: 1.4;
+            white-space: pre-line;
+            /* Support line breaks */
+            /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; */
+        }
+
+        #notification.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #notification:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #notificationTitle {
+            font-weight: 600;
+            /* font-size: 14px; */
+            margin-bottom: 6px;
+            color: inherit;
+        }
+
+        #notificationMessage {
+            font-size: 14px;
+            color: inherit;
+            line-height: 1.4;
+        }
+
+        /* Success notification */
+        #notification.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        /* Error notification */
+        #notification.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* ✅ PERBAIKAN: Info notification */
+        #notification.info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        #notification.info #notificationTitle {
+            color: #0c5460;
+        }
+
+        #notification.info #notificationMessage {
+            color: #0c5460;
+        }
+
+        .modal-detail .modal-content {
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(30, 59, 138, .2);
+            border: none
+        }
+
+        .modal-detail .modal-header {
+            color: black;
+            border-radius: 16px 16px 0 0;
+            position: relative
+        }
+
+        .modal-detail .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            width: 100%;
+            text-align: center
+        }
+
+        .modal-detail .modal-body {
+            padding: 20px
+        }
+
+        .modal-detail .btn-close {
+            color: #000;
+            padding-right: 50px
+        }
+
+        .modal-confirm .modal-content {
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(30, 59, 138, .2);
+            border: none
+        }
+
+        .modal-confirm .modal-header {
+            background: linear-gradient(135deg, #dc3545, #ff6666);
+            color: #fff;
+            border-radius: 16px 16px 0 0
+        }
+
+        .modal-confirm .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            width: 100%;
+            text-align: center
+        }
+
+        .modal-confirm .modal-body {
+            padding: 20px;
+            font-size: 1rem;
+            text-align: center
+        }
+
+        .modal-confirm .modal-footer {
+            justify-content: center;
+            gap: 10px
+        }
+
+        .modal-confirm .btn-confirm {
+            background: #dc3545;
+            color: #fff;
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-weight: 500
+        }
+
+        .modal-confirm .btn-cancel {
+            background: #6c757d;
+            color: #fff;
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-weight: 500
+        }
+
+        .modal-manual .modal-content {
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(30, 59, 138, .2);
+            border: none
+        }
+
+        .modal-manual .modal-header {
+            background: linear-gradient(135deg, #1E3B8A, #3B5CBA);
+            color: #fff;
+            border-radius: 16px 16px 0 0
+        }
+
+        .modal-manual .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            width: 100%;
+            text-align: center
+        }
+
+        .modal-manual .modal-body {
+            padding: 20px
+        }
+
+        .modal-manual .modal-footer {
+            justify-content: center;
+            gap: 10px
+        }
+
+        .modal-manual .btn-save {
+            background: #1E3B8A;
+            color: #fff;
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-weight: 500
+        }
+
+        .modal-manual .btn-cancel {
+            background: #6c757d;
+            color: #fff;
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-weight: 500
+        }
+
+        .custom-input {
+            background: #FDFDFD;
+            border: 1px solid #DAD9D9;
+            border-radius: 12px;
+            padding: 10px;
+            color: #989898
+        }
+
+        .custom-save-btn {
+            background: #1E3B8A;
+            color: #fff;
+            border-radius: 12px;
+            padding: 8px 24px;
+            font-weight: 500;
+            border: none
+        }
+
+        .custom-save-btn:hover {
+            background: #163075
+        }
+
+        @media (max-width: 1024px) {
+            .flex.lg\:flex-row {
+                flex-direction: column
+            }
+
+            .w-full.lg\:w-1\/2 {
+                width: 100%
+            }
+        }

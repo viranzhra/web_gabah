@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     @yield('styles') <!-- For page-specific styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- <script src="{{ asset('js/app.js') }}"></script> --}}
 </head>
@@ -29,100 +31,6 @@
     <!-- Tambahkan Toastify JS dan script SSE -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Ambil process_id dari API getOngoingProcess
-            fetch('{{ config('services.api.base_url') }}/ongoing-process')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.process_id) {
-                        const eventSource = new EventSource(`{{ config('services.api.base_url') }}/sse/sensor-data/${data.process_id}`);
-
-                        eventSource.addEventListener('notification', function (event) {
-                            const data = JSON.parse(event.data);
-                            const notificationId = data.notification_id;
-
-                            // Cek apakah notifikasi sudah ditampilkan di sessionStorage
-                            const shownNotifications = JSON.parse(sessionStorage.getItem('shownNotifications') || '[]');
-                            const now = Date.now();
-                            const tenMinutes = 10 * 60 * 1000; // 10 menit dalam milidetik
-
-                            // Jika notifikasi belum ditampilkan atau sudah lebih dari 10 menit untuk notifikasi periodik
-                            if (!shownNotifications.includes(notificationId) || 
-                                (notificationId.startsWith('duration_update_') && now - (sessionStorage.getItem('lastPeriodicUpdate') || 0) >= tenMinutes)) {
-                                
-                                // Simpan notification_id
-                                shownNotifications.push(notificationId);
-                                sessionStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
-
-                                // Simpan waktu terakhir untuk notifikasi periodik
-                                if (notificationId.startsWith('duration_update_')) {
-                                    sessionStorage.setItem('lastPeriodicUpdate', now);
-                                }
-
-                                // Tentukan warna berdasarkan tipe notifikasi
-                                let backgroundColor;
-                                switch (data.type) {
-                                    case 'success':
-                                        backgroundColor = '#4CAF50';
-                                        break;
-                                    case 'warning':
-                                        backgroundColor = '#FF9800';
-                                        break;
-                                    case 'error':
-                                        backgroundColor = '#F44336';
-                                        break;
-                                    default:
-                                        backgroundColor = '#2196F3';
-                                }
-
-                                // Tampilkan notifikasi
-                                Toastify({
-                                    text: data.message,
-                                    duration: 5000,
-                                    gravity: 'top',
-                                    position: 'right',
-                                    backgroundColor: backgroundColor,
-                                    stopOnFocus: true,
-                                }).showToast();
-                            }
-                        });
-
-                        eventSource.addEventListener('error', function (event) {
-                            const data = JSON.parse(event.data);
-                            const notificationId = 'error_' + Date.now();
-
-                            // Cek apakah error belum ditampilkan
-                            const shownNotifications = JSON.parse(sessionStorage.getItem('shownNotifications') || '[]');
-                            if (!shownNotifications.includes(notificationId)) {
-                                shownNotifications.push(notificationId);
-                                sessionStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
-
-                                Toastify({
-                                    text: data.error,
-                                    duration: 5000,
-                                    gravity: 'top',
-                                    position: 'right',
-                                    backgroundColor: '#F44336',
-                                    stopOnFocus: true,
-                                }).showToast();
-                            }
-                            eventSource.close();
-                        });
-
-                        // Tangani reconnect jika SSE gagal
-                        eventSource.onerror = function () {
-                            console.log('SSE error, reconnecting...');
-                            setTimeout(() => {
-                                location.reload(); // Reload halaman untuk reconnect
-                            }, 5000);
-                        };
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching ongoing process:', error);
-                });
-        });
-
         // Bersihkan sessionStorage saat logout
         document.addEventListener('logout', function () {
             // Hapus data sessionStorage
