@@ -282,14 +282,24 @@
             $('#notificationTitle').text(title);
             $('#notificationMessage').text(message);
             notification.removeClass().addClass('alert ' + type).fadeIn();
-            setTimeout(() => notification.fadeOut(), 4000);
+            console.log('Notification shown:', { type, title, message });
+            setTimeout(() => {
+                notification.fadeOut();
+                console.log('Notification hidden');
+            }, 4000);
+        }
+
+        function clearModalBackdrop() {
+            // Remove any lingering modal backdrops
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('padding-right', '');
+            console.log('Modal backdrop cleared');
         }
 
         function populateWarehouseDropdown(selectElement, selectedId = null, retryCount = 0, maxRetries = 2) {
             selectElement.prop('disabled', true);
-            $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', true); // Disable submit buttons
-            console.log('Fetching warehouses from:', '{{ config('services.api.base_url') }}/warehouses', 'Retry attempt:',
-                retryCount + 1);
+            $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', true);
+            console.log('Fetching warehouses from:', '{{ config('services.api.base_url') }}/warehouses', 'Retry attempt:', retryCount + 1);
             console.log('Sanctum Token used:', window.sanctumToken ? '[Present]' : '[Missing]');
             $.ajax({
                 url: "{{ config('services.api.base_url') }}/warehouses",
@@ -300,10 +310,7 @@
                 },
                 timeout: 10000,
                 success: function(res, textStatus, xhr) {
-                    console.log('Warehouse API response:', {
-                        status: xhr.status,
-                        response: res
-                    });
+                    console.log('Warehouse API response:', { status: xhr.status, response: res });
                     selectElement.empty().append('<option value="">Pilih Warehouse</option>');
                     if (!res || !res.status || !Array.isArray(res.data)) {
                         console.warn('Invalid warehouse response structure:', res);
@@ -315,47 +322,35 @@
                     if (warehouses.length === 0) {
                         console.warn('No warehouses returned for user');
                         selectElement.append('<option value="">Tidak ada warehouse tersedia</option>');
-                        showNotification("warning", "Peringatan",
-                            "Tidak ada warehouse yang tersedia untuk pengguna ini. Tambahkan warehouse terlebih dahulu."
-                            );
+                        showNotification("warning", "Peringatan", "Tidak ada warehouse yang tersedia untuk pengguna ini. Tambahkan warehouse terlebih dahulu.");
                     } else {
                         warehouses.forEach(w => {
                             if (w.warehouse_id && w.nama) {
                                 const selected = w.warehouse_id == selectedId ? 'selected' : '';
-                                selectElement.append(
-                                    `<option value="${w.warehouse_id}" ${selected}>${w.nama}</option>`
-                                    );
+                                selectElement.append(`<option value="${w.warehouse_id}" ${selected}>${w.nama}</option>`);
                             } else {
                                 console.warn('Invalid warehouse entry:', w);
                             }
                         });
                     }
                     selectElement.prop('disabled', false);
-                    $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', false); // Re-enable submit buttons
+                    $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', false);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Warehouse API error:', {
-                        status: xhr.status,
-                        response: xhr.responseText,
-                        statusText: xhr.statusText,
-                        error: error,
-                        responseJSON: xhr.responseJSON
-                    });
+                    console.error('Warehouse API error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText, error: error, responseJSON: xhr.responseJSON });
                     if (retryCount < maxRetries && xhr.status !== 401) {
                         console.log('Retrying warehouse fetch, attempt:', retryCount + 2);
-                        setTimeout(() => populateWarehouseDropdown(selectElement, selectedId, retryCount + 1,
-                            maxRetries), 1000);
+                        setTimeout(() => populateWarehouseDropdown(selectElement, selectedId, retryCount + 1, maxRetries), 1000);
                         return;
                     }
                     selectElement.empty().append('<option value="">Pilih Warehouse</option>');
                     selectElement.append('<option value="">Gagal memuat warehouse</option>');
                     selectElement.prop('disabled', false);
-                    $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', false); // Re-enable submit buttons
+                    $('#tambahSubmitBtn, #editSubmitBtn').prop('disabled', false);
                     let msg = xhr.responseJSON?.message || "Gagal memuat daftar warehouse.";
                     if (xhr.status === 401) {
                         msg = "Sesi berakhir. Silakan login kembali.";
-                        selectElement.empty().append(
-                            '<option value="">Sesi berakhir, silakan login kembali</option>');
+                        selectElement.empty().append('<option value="">Sesi berakhir, silakan login kembali</option>');
                         showNotification("error", "Gagal!", msg);
                         setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
                     } else if (xhr.status === 404) {
@@ -386,6 +381,11 @@
                     return;
                 }
 
+                // Prevent form submissions from causing page reload
+                $('#tambahForm, #editForm').on('submit', function(e) {
+                    e.preventDefault();
+                });
+
                 // Fallback to populate dropdown if modal event fails
                 const tambahModal = document.getElementById('tambahDataModal');
                 if (tambahModal) {
@@ -394,6 +394,13 @@
                         console.log('Tambah modal show event triggered');
                         $('#tambah_warehouse_id').html('<option value="">Pilih Warehouse</option>');
                         populateWarehouseDropdown($('#tambah_warehouse_id'));
+                        // Reset form
+                        $('#tambahForm')[0].reset();
+                        $('#tambah_warehouse_id').val('');
+                    });
+                    tambahModal.addEventListener('hidden.bs.modal', function() {
+                        console.log('Tambah modal hidden');
+                        clearModalBackdrop();
                     });
                 } else {
                     console.error('tambahDataModal element not found');
@@ -406,8 +413,32 @@
                         console.log('Edit modal show event triggered');
                         $('#edit_warehouse_id').html('<option value="">Pilih Warehouse</option>');
                     });
+                    editModal.addEventListener('hidden.bs.modal', function() {
+                        console.log('Edit modal hidden');
+                        clearModalBackdrop();
+                    });
                 } else {
                     console.error('editDataModal element not found');
+                }
+
+                const deleteModal = document.getElementById('deleteConfirmModal');
+                if (deleteModal) {
+                    deleteModal.addEventListener('hidden.bs.modal', function() {
+                        console.log('Delete modal hidden');
+                        clearModalBackdrop();
+                    });
+                } else {
+                    console.error('deleteConfirmModal element not found');
+                }
+
+                const detailModal = document.getElementById('detailDataModal');
+                if (detailModal) {
+                    detailModal.addEventListener('hidden.bs.modal', function() {
+                        console.log('Detail modal hidden');
+                        clearModalBackdrop();
+                    });
+                } else {
+                    console.error('detailDataModal element not found');
                 }
 
                 const table = $('#data-table').DataTable({
@@ -423,17 +454,12 @@
                             return json.data || [];
                         },
                         error: function(xhr, error, thrown) {
-                            console.error('DataTable error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText,
-                                error: thrown
-                            });
-                            showNotification("error", "Gagal!", "Gagal memuat data bed dryer: " + (
-                                xhr.responseJSON?.message || xhr.statusText));
+                            console.error('DataTable error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText, error: thrown });
+                            showNotification("error", "Gagal!", "Gagal memuat data bed dryer: " + (xhr.responseJSON?.message || xhr.statusText));
                         }
                     },
-                    columns: [{
+                    columns: [
+                        {
                             data: null,
                             render: (data, type, row, meta) => meta.row + 1
                         },
@@ -452,17 +478,17 @@
                         {
                             data: null,
                             render: row => `
-                            <div class="action-buttons">
-                                <button onclick="detailData(${row.dryer_id})" class="btn btn-sm" title="Detail">
-                                    <i class="fas fa-info-circle" style="color:#1E3B8A; font-size:18px;"></i>
-                                </button>
-                                <button onclick="editData(${row.dryer_id})" class="btn btn-sm" title="Edit">
-                                    <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
-                                </button>
-                                <button onclick="deleteData(${row.dryer_id})" class="btn btn-sm" title="Hapus">
-                                    <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
-                                </button>
-                            </div>`
+                                <div class="action-buttons">
+                                    <button onclick="detailData(${row.dryer_id})" class="btn btn-sm" title="Detail">
+                                        <i class="fas fa-info-circle" style="color:#1E3B8A; font-size:18px;"></i>
+                                    </button>
+                                    <button onclick="editData(${row.dryer_id})" class="btn btn-sm" title="Edit">
+                                        <i class="fas fa-edit" style="color: green; font-size: 18px;"></i>
+                                    </button>
+                                    <button onclick="deleteData(${row.dryer_id})" class="btn btn-sm" title="Hapus">
+                                        <i class="fas fa-trash-restore" style="color: #b60303; font-size: 18px;"></i>
+                                    </button>
+                                </div>`
                         }
                     ],
                     language: {
@@ -473,9 +499,9 @@
                 // === CREATE (Tambah) ===
                 $('#tambahForm').on('submit', function(e) {
                     e.preventDefault();
+                    console.log('Tambah form submitted');
                     if ($('#tambah_warehouse_id').prop('disabled')) {
-                        showNotification("error", "Gagal!",
-                            "Daftar warehouse belum siap. Coba lagi nanti.");
+                        showNotification("error", "Gagal!", "Daftar warehouse belum siap. Coba lagi nanti.");
                         return;
                     }
                     const payload = {
@@ -483,6 +509,7 @@
                         warehouse_id: $('#tambah_warehouse_id').val() || null,
                         deskripsi: $('#tambah_deskripsi').val().trim() || null
                     };
+                    console.log('Create payload:', payload);
 
                     $.ajax({
                         url: "{{ config('services.api.base_url') }}/bed-dryers/store",
@@ -496,30 +523,30 @@
                         success: function(res) {
                             console.log('Create Bed Dryer response:', res);
                             if (res.status && res.data) {
-                                bootstrap.Modal.getInstance(document.getElementById(
-                                    'tambahDataModal')).hide();
-                                table.ajax.reload(null, false);
-                                showNotification("success", "Berhasil!",
-                                    "Bed dryer berhasil ditambahkan.");
+                                const tambahModalEl = document.getElementById('tambahDataModal');
+                                const tambahModal = bootstrap.Modal.getInstance(tambahModalEl) || new bootstrap.Modal(tambahModalEl);
+                                tambahModal.hide();
+                                console.log('Tambah modal closed');
+                                clearModalBackdrop();
+                                showNotification("success", "Berhasil!", "Bed dryer berhasil ditambahkan.");
+                                setTimeout(() => {
+                                    console.log('Reloading DataTable after create');
+                                    table.ajax.reload(null, false);
+                                }, 1000); // Delay to ensure notification is visible
                             } else {
-                                showNotification("error", "Gagal!",
-                                    "Respons tidak valid dari server.");
+                                showNotification("error", "Gagal!", "Respons tidak valid dari server.");
                             }
                         },
                         error: function(xhr) {
-                            console.error('Create Bed Dryer error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText
-                            });
+                            console.error('Create Bed Dryer error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText });
                             let msg = xhr.responseJSON?.message || "Gagal menambah data.";
                             if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                                msg = Object.values(xhr.responseJSON.errors).flat().join(
-                                    ', ');
+                                msg = Object.values(xhr.responseJSON.errors).flat().join(', ');
                             } else if (xhr.status === 401) {
                                 msg = "Sesi berakhir. Silakan login kembali.";
-                                setTimeout(() => window.location.href =
-                                    '{{ route('login') }}', 2000);
+                                setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
+                            } else if (xhr.status === 500 && xhr.responseJSON?.message.includes('SQLSTATE[23505]')) {
+                                msg = "Nama bed dryer sudah digunakan. Silakan gunakan nama lain.";
                             }
                             showNotification("error", "Gagal!", msg);
                         }
@@ -542,28 +569,19 @@
                                 $("#edit_dryer_id").val(res.data.dryer.dryer_id);
                                 $("#edit_nama").val(res.data.dryer.nama || "");
                                 $("#edit_deskripsi").val(res.data.dryer.deskripsi || "");
-                                populateWarehouseDropdown($('#edit_warehouse_id'), res.data
-                                    .dryer.warehouse_id);
-                                new bootstrap.Modal(document.getElementById("editDataModal"))
-                                    .show();
+                                populateWarehouseDropdown($('#edit_warehouse_id'), res.data.dryer.warehouse_id);
+                                new bootstrap.Modal(document.getElementById("editDataModal")).show();
                             } else {
-                                showNotification("error", "Gagal!",
-                                    "Data bed dryer tidak valid.");
+                                showNotification("error", "Gagal!", "Data bed dryer tidak valid.");
                             }
                         },
                         error: function(xhr) {
-                            console.error('Edit Bed Dryer error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText
-                            });
-                            let msg = xhr.responseJSON?.message ||
-                                "Gagal mengambil data bed dryer.";
+                            console.error('Edit Bed Dryer error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText });
+                            let msg = xhr.responseJSON?.message || "Gagal mengambil data bed dryer.";
                             if (xhr.status === 404) msg = "Bed dryer tidak ditemukan.";
                             else if (xhr.status === 401) {
                                 msg = "Sesi berakhir. Silakan login kembali.";
-                                setTimeout(() => window.location.href = '{{ route('login') }}',
-                                    2000);
+                                setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
                             }
                             showNotification("error", "Gagal!", msg);
                         }
@@ -573,9 +591,9 @@
                 // Submit form edit
                 $("#editForm").on("submit", function(e) {
                     e.preventDefault();
+                    console.log('Edit form submitted');
                     if ($('#edit_warehouse_id').prop('disabled')) {
-                        showNotification("error", "Gagal!",
-                            "Daftar warehouse belum siap. Coba lagi nanti.");
+                        showNotification("error", "Gagal!", "Daftar warehouse belum siap. Coba lagi nanti.");
                         return;
                     }
                     const id = $("#edit_dryer_id").val();
@@ -584,6 +602,7 @@
                         warehouse_id: $("#edit_warehouse_id").val() || null,
                         deskripsi: $("#edit_deskripsi").val().trim() || null
                     };
+                    console.log('Edit payload:', payload);
 
                     $.ajax({
                         url: "{{ config('services.api.base_url') }}/bed-dryers/" + id,
@@ -597,34 +616,28 @@
                         success: function(res) {
                             console.log('Update Bed Dryer response:', res);
                             if (res.status && res.data) {
-                                const editModalEl = document.getElementById(
-                                "editDataModal");
-                                const editModal = bootstrap.Modal.getInstance(
-                                    editModalEl) || new bootstrap.Modal(editModalEl);
+                                const editModalEl = document.getElementById("editDataModal");
+                                const editModal = bootstrap.Modal.getInstance(editModalEl) || new bootstrap.Modal(editModalEl);
                                 editModal.hide();
-                                table.ajax.reload(null, false);
-                                showNotification("success", "Berhasil!",
-                                    "Bed dryer berhasil diperbarui.");
+                                console.log('Edit modal closed');
+                                clearModalBackdrop();
+                                showNotification("success", "Berhasil!", "Bed dryer berhasil diperbarui.");
+                                setTimeout(() => {
+                                    console.log('Reloading DataTable after update');
+                                    table.ajax.reload(null, false);
+                                }, 1000); // Delay to ensure notification is visible
                             } else {
-                                showNotification("error", "Gagal!",
-                                    "Respons tidak valid dari server.");
+                                showNotification("error", "Gagal!", "Respons tidak valid dari server.");
                             }
                         },
                         error: function(xhr) {
-                            console.error('Update Bed Dryer error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText
-                            });
-                            let msg = xhr.responseJSON?.message ||
-                                "Gagal memperbarui bed dryer.";
+                            console.error('Update Bed Dryer error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText });
+                            let msg = xhr.responseJSON?.message || "Gagal memperbarui bed dryer.";
                             if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                                msg = Object.values(xhr.responseJSON.errors).flat().join(
-                                    ", ");
+                                msg = Object.values(xhr.responseJSON.errors).flat().join(", ");
                             } else if (xhr.status === 401) {
                                 msg = "Sesi berakhir. Silakan login kembali.";
-                                setTimeout(() => window.location.href =
-                                    '{{ route('login') }}', 2000);
+                                setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
                             }
                             showNotification("error", "Gagal!", msg);
                         }
@@ -633,6 +646,7 @@
 
                 // === DETAIL ===
                 window.detailData = function(id) {
+                    console.log('Fetching detail for bed dryer ID:', id);
                     $.ajax({
                         url: "{{ config('services.api.base_url') }}/bed-dryers/" + id,
                         method: "GET",
@@ -651,9 +665,7 @@
 
                                 const $list = $("#deviceList").empty();
                                 if (devices.length === 0) {
-                                    $list.append(
-                                        '<div class="col-12 text-center text-muted">Tidak ada device terhubung.</div>'
-                                        );
+                                    $list.append('<div class="col-12 text-center text-muted">Tidak ada device terhubung.</div>');
                                 } else {
                                     devices.forEach(d => {
                                         $list.append(`
@@ -671,25 +683,17 @@
                                         `);
                                     });
                                 }
-                                new bootstrap.Modal(document.getElementById("detailDataModal"))
-                                    .show();
+                                new bootstrap.Modal(document.getElementById("detailDataModal")).show();
                             } else {
-                                showNotification("error", "Gagal!",
-                                    "Data bed dryer tidak valid.");
+                                showNotification("error", "Gagal!", "Data bed dryer tidak valid.");
                             }
                         },
                         error: function(xhr) {
-                            console.error('Detail Bed Dryer error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText
-                            });
-                            let msg = xhr.responseJSON?.message ||
-                                "Gagal mengambil detail bed dryer.";
+                            console.error('Detail Bed Dryer error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText });
+                            let msg = xhr.responseJSON?.message || "Gagal mengambil detail bed dryer.";
                             if (xhr.status === 401) {
                                 msg = "Sesi berakhir. Silakan login kembali.";
-                                setTimeout(() => window.location.href = '{{ route('login') }}',
-                                    2000);
+                                setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
                             }
                             showNotification("error", "Gagal!", msg);
                         }
@@ -700,6 +704,7 @@
                 let deleteDryerId = null;
 
                 window.deleteData = function(id) {
+                    console.log('Initiating delete for bed dryer ID:', id);
                     const rowData = table.rows().data().toArray().find(r => r.dryer_id === id);
                     const nama = rowData ? rowData.nama : "(Tidak diketahui)";
 
@@ -709,11 +714,14 @@
                 };
 
                 $("#confirmDeleteBtn").on("click", function() {
-                    if (!deleteDryerId) return;
+                    if (!deleteDryerId) {
+                        console.warn('No deleteDryerId set for deletion');
+                        return;
+                    }
+                    console.log('Deleting bed dryer ID:', deleteDryerId);
 
                     $.ajax({
-                        url: "{{ config('services.api.base_url') }}/bed-dryers/" +
-                            deleteDryerId,
+                        url: "{{ config('services.api.base_url') }}/bed-dryers/" + deleteDryerId,
                         method: "DELETE",
                         headers: {
                             "Authorization": `Bearer ${window.sanctumToken}`,
@@ -722,36 +730,45 @@
                         success: function(res) {
                             console.log('Delete Bed Dryer response:', res);
                             if (res.status) {
-                                table.ajax.reload(null, false);
-                                showNotification("success", "Berhasil!",
-                                    "Bed dryer berhasil dihapus.");
+                                const deleteModalEl = document.getElementById("deleteConfirmModal");
+                                const deleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
+                                deleteModal.hide();
+                                console.log('Delete modal closed');
+                                clearModalBackdrop();
+                                showNotification("success", "Berhasil!", "Bed dryer berhasil dihapus.");
+                                setTimeout(() => {
+                                    console.log('Reloading DataTable after delete');
+                                    table.ajax.reload(null, false);
+                                }, 1000); // Delay to ensure notification is visible
                             } else {
-                                showNotification("error", "Gagal!",
-                                    "Respons tidak valid dari server.");
+                                showNotification("error", "Gagal!", "Respons tidak valid dari server.");
                             }
                         },
                         error: function(xhr) {
-                            console.error('Delete Bed Dryer error:', {
-                                status: xhr.status,
-                                response: xhr.responseText,
-                                statusText: xhr.statusText
-                            });
-                            let msg = xhr.responseJSON?.message ||
-                                "Gagal menghapus bed dryer.";
+                            console.error('Delete Bed Dryer error:', { status: xhr.status, response: xhr.responseText, statusText: xhr.statusText });
+                            let msg = xhr.responseJSON?.message || "Gagal menghapus bed dryer.";
                             if (xhr.status === 404) msg = "Bed dryer tidak ditemukan.";
                             else if (xhr.status === 401) {
                                 msg = "Sesi berakhir. Silakan login kembali.";
-                                setTimeout(() => window.location.href =
-                                    '{{ route('login') }}', 2000);
+                                setTimeout(() => window.location.href = '{{ route('login') }}', 2000);
                             }
                             showNotification("error", "Gagal!", msg);
                         },
                         complete: function() {
                             deleteDryerId = null;
-                            bootstrap.Modal.getInstance(document.getElementById(
-                                "deleteConfirmModal")).hide();
+                            const deleteModalEl = document.getElementById("deleteConfirmModal");
+                            const deleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
+                            deleteModal.hide();
+                            clearModalBackdrop();
                         }
                     });
+                });
+
+                // Prevent accidental page reloads
+                window.addEventListener('beforeunload', function(e) {
+                    // Only trigger confirmation if form data is unsaved (optional)
+                    // e.preventDefault();
+                    // e.returnValue = '';
                 });
             });
         })(jQuery.noConflict(true));

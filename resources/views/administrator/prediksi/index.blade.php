@@ -1420,7 +1420,7 @@
             }
         };
         updateSidebar();
-        setInterval(updateSidebar, 10000);
+        // setInterval(updateSidebar, 10000);
     </script>
 
     <!-- Modal Detail (dipertahankan) -->
